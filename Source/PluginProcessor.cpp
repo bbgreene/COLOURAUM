@@ -42,66 +42,15 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
 {
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
     
-    auto pSize = std::make_unique<juce::AudioParameterFloat> ("size",
-                                                                 "Size",
-                                                                 juce::NormalisableRange<float> (0.0f, 1.0f, 0.001f, 1.0f),
-                                                                 0.5f,
-                                                                 juce::String(),
-                                                                 juce::AudioProcessorParameter::genericParameter,
-                                                                 [](float value, int) {
-                                                                    if (value * 100 < 10.0f)
-                                                                        return juce::String (value * 100, 2);
-                                                                    else if (value * 100 < 100.0f)
-                                                                        return juce::String (value * 100, 1);
-                                                                    else
-                                                                        return juce::String (value * 100, 0); },
-                                                                 nullptr);
+    auto pSize = std::make_unique<juce::AudioParameterFloat> ("size", "Size", 0.0, 1.0, 0.0);
 
-    auto pDamp = std::make_unique<juce::AudioParameterFloat> ("damp",
-                                                                 "Damp",
-                                                                 juce::NormalisableRange<float> (0.0f, 1.0f, 0.001f, 1.0f),
-                                                                 0.5f,
-                                                                 juce::String(),
-                                                                 juce::AudioProcessorParameter::genericParameter,
-                                                                 [](float value, int) {
-                                                                    if (value * 100 < 10.0f)
-                                                                        return juce::String (value * 100, 2);
-                                                                    else if (value * 100 < 100.0f)
-                                                                        return juce::String (value * 100, 1);
-                                                                    else
-                                                                        return juce::String (value * 100, 0); },
-                                                                 nullptr);
+    auto pDamp = std::make_unique<juce::AudioParameterFloat> ("damp", "Damp", 0.0, 1.0, 0.0);
+                                   
+    auto pWidth = std::make_unique<juce::AudioParameterFloat> ("width", "Width", 0.0, 1.0, 0.0);
+                                                                 
 
-
-    auto pWidth = std::make_unique<juce::AudioParameterFloat> ("width",
-                                                                 "Width",
-                                                                 juce::NormalisableRange<float> (0.0f, 1.0f, 0.001f, 1.0f),
-                                                                 0.5f,
-                                                                 juce::String(),
-                                                                 juce::AudioProcessorParameter::genericParameter,
-                                                                 [](float value, int) {
-                                                                    if (value * 100 < 10.0f)
-                                                                        return juce::String (value * 100, 2);
-                                                                    else if (value * 100 < 100.0f)
-                                                                        return juce::String (value * 100, 1);
-                                                                    else
-                                                                        return juce::String (value * 100, 0); },
-                                                                nullptr);
-
-    auto pMix = std::make_unique<juce::AudioParameterFloat> ("mix",
-                                                                 "Mix",
-                                                                 juce::NormalisableRange<float> (0.0f, 1.0f, 0.001f, 1.0f),
-                                                                 0.5f,
-                                                                 juce::String(),
-                                                                 juce::AudioProcessorParameter::genericParameter,
-                                                                 [](float value, int) {
-                                                                    if (value * 100 < 10.0f)
-                                                                        return juce::String (value * 100, 2);
-                                                                    else if (value * 100 < 100.0f)
-                                                                        return juce::String (value * 100, 1);
-                                                                    else
-                                                                        return juce::String (value * 100, 0); },
-                                                                 nullptr);
+    auto pMix = std::make_unique<juce::AudioParameterFloat> ("mix", "Mix", 0.0, 1.0, 0.0);
+                                                                 
 
     auto pFreeze = std::make_unique<juce::AudioParameterBool> ("freeze", "Freeze", false);
     
@@ -116,12 +65,13 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
 
 void COLOURAUMAudioProcessor::parameterChanged(const juce::String &parameterID, float newValue)
 {
-    reverbParams.roomSize = *treeState.getRawParameterValue("size");
-    reverbParams.damping = *treeState.getRawParameterValue("damp");
-    reverbParams.width = *treeState.getRawParameterValue("width");
-    reverbParams.wetLevel = *treeState.getRawParameterValue("mix");
-    reverbParams.dryLevel = 1.0f - *treeState.getRawParameterValue("mix");
-    reverbParams.roomSize = *treeState.getRawParameterValue("freeze");
+    reverbParams.roomSize = treeState.getRawParameterValue("size")->load();
+    reverbParams.damping = treeState.getRawParameterValue("damp")->load();
+    reverbParams.width = treeState.getRawParameterValue("width")->load();
+    reverbParams.wetLevel = treeState.getRawParameterValue("mix")->load();
+    reverbParams.dryLevel = 1.0f - treeState.getRawParameterValue("mix")->load();
+    reverbParams.freezeMode = treeState.getRawParameterValue("freeze")->load();
+    reverbModule.setParameters(reverbParams);
 }
 
 //==============================================================================
@@ -194,15 +144,14 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     spec.maximumBlockSize = samplesPerBlock;
     spec.numChannels = getTotalNumOutputChannels();
     
-    leftReverb.prepare(spec);
-    rightReverb.prepare(spec);
-    
-    reverbParams.roomSize = *treeState.getRawParameterValue("size");
-    reverbParams.damping = *treeState.getRawParameterValue("damp");
-    reverbParams.width = *treeState.getRawParameterValue("width");
-    reverbParams.wetLevel = *treeState.getRawParameterValue("mix");
-    reverbParams.dryLevel = 1.0f - *treeState.getRawParameterValue("mix");
-    reverbParams.freezeMode = *treeState.getRawParameterValue("freeze");
+    reverbModule.prepare(spec);
+    reverbParams.roomSize = treeState.getRawParameterValue("size")->load();
+    reverbParams.damping = treeState.getRawParameterValue("damp")->load();
+    reverbParams.width = treeState.getRawParameterValue("width")->load();
+    reverbParams.wetLevel = treeState.getRawParameterValue("mix")->load();
+    reverbParams.dryLevel = 1.0f - treeState.getRawParameterValue("mix")->load();
+    reverbParams.freezeMode = treeState.getRawParameterValue("freeze")->load();
+    reverbModule.setParameters(reverbParams);
 }
 
 void COLOURAUMAudioProcessor::releaseResources()
@@ -246,26 +195,19 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    reverbParams.roomSize = *treeState.getRawParameterValue("size");
-    reverbParams.damping = *treeState.getRawParameterValue("damp");
-    reverbParams.width = *treeState.getRawParameterValue("width");
-    reverbParams.wetLevel = *treeState.getRawParameterValue("mix");
-    reverbParams.dryLevel = 1.0f - *treeState.getRawParameterValue("mix");
-    reverbParams.freezeMode = *treeState.getRawParameterValue("freeze");
+    reverbParams.roomSize = treeState.getRawParameterValue("size")->load();
+    reverbParams.damping = treeState.getRawParameterValue("damp")->load();
+    reverbParams.width = treeState.getRawParameterValue("width")->load();
+    reverbParams.wetLevel = treeState.getRawParameterValue("mix")->load();
+    reverbParams.dryLevel = 1.0f - treeState.getRawParameterValue("mix")->load();
+    reverbParams.freezeMode = treeState.getRawParameterValue("freeze")->load();
     
-    leftReverb.setParameters(reverbParams);
-    rightReverb.setParameters(reverbParams);
+    reverbModule.setParameters(reverbParams);
     
     juce::dsp::AudioBlock<float> block (buffer);
-    
-    auto leftBlock = block.getSingleChannelBlock (0);
-    auto rightBlock = block.getSingleChannelBlock (1);
+    juce::dsp::ProcessContextReplacing<float> context (block);
+    reverbModule.process(context);
 
-    juce::dsp::ProcessContextReplacing<float> leftContext (leftBlock);
-    juce::dsp::ProcessContextReplacing<float> rightContext (rightBlock);
-
-    leftReverb.process (leftContext);
-    rightReverb.process (rightContext);
 }
 
 //==============================================================================

@@ -57,7 +57,7 @@ public:
 private:
 
     juce::dsp::Reverb::Parameters reverbParams;
-    juce::dsp::Reverb leftReverb, rightReverb;
+    juce::dsp::Reverb reverbModule;
     
     //Functions for param layout and changes
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
