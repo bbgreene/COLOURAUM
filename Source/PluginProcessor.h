@@ -58,6 +58,8 @@ private:
 
     juce::dsp::Reverb::Parameters reverbParams;
     juce::dsp::Reverb reverbModule;
+    juce::dsp::LinkwitzRileyFilter<float> highPassFilter;
+    juce::dsp::LinkwitzRileyFilter<float> lowPassFilter;
     
     //Functions for param layout and changes
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();

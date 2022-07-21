@@ -22,6 +22,8 @@ COLOURAUMAudioProcessor::COLOURAUMAudioProcessor()
                        ), treeState(*this, nullptr, "PARAMETERS", createParameterLayout())
 #endif
 {
+    treeState.addParameterListener("hiPass", this);
+    treeState.addParameterListener("loPass", this);
     treeState.addParameterListener("size", this);
     treeState.addParameterListener("damp", this);
     treeState.addParameterListener("width", this);
@@ -31,6 +33,8 @@ COLOURAUMAudioProcessor::COLOURAUMAudioProcessor()
 
 COLOURAUMAudioProcessor::~COLOURAUMAudioProcessor()
 {
+    treeState.addParameterListener("hiPass", this);
+    treeState.addParameterListener("loPass", this);
     treeState.removeParameterListener("size", this);
     treeState.removeParameterListener("damp", this);
     treeState.removeParameterListener("width", this);
@@ -42,18 +46,16 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
 {
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
     
+    auto pHighPassFreq = std::make_unique<juce::AudioParameterFloat> ("hiPass", "HiPass", 20.0, 2000.0, 20.0);
+    auto pLowPassFreq = std::make_unique<juce::AudioParameterFloat> ("loPass", "LoPass", 5000.0, 20000.0, 20000.0);
     auto pSize = std::make_unique<juce::AudioParameterFloat> ("size", "Size", 0.0, 1.0, 0.0);
-
     auto pDamp = std::make_unique<juce::AudioParameterFloat> ("damp", "Damp", 0.0, 1.0, 0.0);
-                                   
     auto pWidth = std::make_unique<juce::AudioParameterFloat> ("width", "Width", 0.0, 1.0, 0.0);
-                                                                 
-
     auto pMix = std::make_unique<juce::AudioParameterFloat> ("mix", "Mix", 0.0, 1.0, 0.0);
-                                                                 
-
     auto pFreeze = std::make_unique<juce::AudioParameterBool> ("freeze", "Freeze", false);
     
+    params.push_back(std::move(pHighPassFreq));
+    params.push_back(std::move(pLowPassFreq));
     params.push_back(std::move(pSize));
     params.push_back(std::move(pDamp));
     params.push_back(std::move(pWidth));
@@ -65,6 +67,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
 
 void COLOURAUMAudioProcessor::parameterChanged(const juce::String &parameterID, float newValue)
 {
+    highPassFilter.setCutoffFrequency(treeState.getRawParameterValue("hiPass")->load());
+    lowPassFilter.setCutoffFrequency(treeState.getRawParameterValue("loPass")->load());
+    
     reverbParams.roomSize = treeState.getRawParameterValue("size")->load();
     reverbParams.damping = treeState.getRawParameterValue("damp")->load();
     reverbParams.width = treeState.getRawParameterValue("width")->load();
@@ -152,6 +157,14 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     reverbParams.dryLevel = 1.0f - treeState.getRawParameterValue("mix")->load();
     reverbParams.freezeMode = treeState.getRawParameterValue("freeze")->load();
     reverbModule.setParameters(reverbParams);
+    
+    highPassFilter.prepare(spec);
+    highPassFilter.setType(juce::dsp::LinkwitzRileyFilterType::highpass);
+    highPassFilter.setCutoffFrequency(treeState.getRawParameterValue("hiPass")->load());
+    
+    lowPassFilter.prepare(spec);
+    lowPassFilter.setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
+    lowPassFilter.setCutoffFrequency(treeState.getRawParameterValue("loPass")->load());
 }
 
 void COLOURAUMAudioProcessor::releaseResources()
@@ -195,6 +208,8 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
+    
+    
     reverbParams.roomSize = treeState.getRawParameterValue("size")->load();
     reverbParams.damping = treeState.getRawParameterValue("damp")->load();
     reverbParams.width = treeState.getRawParameterValue("width")->load();
@@ -206,6 +221,8 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     
     juce::dsp::AudioBlock<float> block (buffer);
     juce::dsp::ProcessContextReplacing<float> context (block);
+    highPassFilter.process(context);
+    lowPassFilter.process(context);
     reverbModule.process(context);
 
 }
