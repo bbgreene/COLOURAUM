@@ -55,12 +55,20 @@ public:
 
     juce::AudioProcessorValueTreeState treeState;
 private:
-
-    juce::dsp::Reverb::Parameters reverbParams;
-    juce::dsp::Reverb reverbModule;
+    
+    // pre filters
     juce::dsp::LinkwitzRileyFilter<float> highPassFilter;
     juce::dsp::LinkwitzRileyFilter<float> lowPassFilter;
     
+    //reverb and params
+    juce::dsp::Reverb::Parameters reverbParams;
+    juce::dsp::Reverb reverbModule;
+    
+    // gate
+    bool gateOnOff { false };
+    juce::dsp::NoiseGate<float> gateModule;
+    
+    //main mix
     juce::dsp::DryWetMixer<float> mixModule;
     
     //Functions for param layout and changes

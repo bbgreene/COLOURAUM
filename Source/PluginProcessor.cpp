@@ -28,20 +28,30 @@ COLOURAUMAudioProcessor::COLOURAUMAudioProcessor()
     treeState.addParameterListener("damp", this);
     treeState.addParameterListener("width", this);
     treeState.addParameterListener("blend", this);
-    treeState.addParameterListener("main mix", this);
     treeState.addParameterListener("freeze", this);
+    treeState.addParameterListener("gate", this);
+    treeState.addParameterListener("threshold", this);
+    treeState.addParameterListener("ratio", this);
+    treeState.addParameterListener("attack", this);
+    treeState.addParameterListener("release", this);
+    treeState.addParameterListener("main mix", this);
 }
 
 COLOURAUMAudioProcessor::~COLOURAUMAudioProcessor()
 {
-    treeState.addParameterListener("hiPass", this);
-    treeState.addParameterListener("loPass", this);
+    treeState.removeParameterListener("hiPass", this);
+    treeState.removeParameterListener("loPass", this);
     treeState.removeParameterListener("size", this);
     treeState.removeParameterListener("damp", this);
     treeState.removeParameterListener("width", this);
     treeState.removeParameterListener("blend", this);
-    treeState.removeParameterListener("main mix", this);
     treeState.removeParameterListener("freeze", this);
+    treeState.removeParameterListener("gate", this);
+    treeState.removeParameterListener("threshold", this);
+    treeState.removeParameterListener("ratio", this);
+    treeState.removeParameterListener("attack", this);
+    treeState.removeParameterListener("release", this);
+    treeState.removeParameterListener("main mix", this);
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::createParameterLayout()
@@ -54,8 +64,14 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     auto pDamp = std::make_unique<juce::AudioParameterFloat> ("damp", "Damp", 0.0, 1.0, 0.0);
     auto pWidth = std::make_unique<juce::AudioParameterFloat> ("width", "Width", 0.0, 1.0, 0.0);
     auto pBlend = std::make_unique<juce::AudioParameterFloat> ("blend", "Blend", 0.0, 1.0, 0.0); // reverb wet
-    auto pMix = std::make_unique<juce::AudioParameterFloat> ("main mix", "Main Mix", 0.0, 1.0, 0.0); // overall mix
     auto pFreeze = std::make_unique<juce::AudioParameterBool> ("freeze", "Freeze", false);
+    auto pMix = std::make_unique<juce::AudioParameterFloat> ("main mix", "Main Mix", 0.0, 1.0, 0.0); // overall mix
+    
+    auto pGateOnOff = std::make_unique<juce::AudioParameterBool> ("gate", "Gate", false);
+    auto pThres = std::make_unique<juce::AudioParameterFloat> ("threshold", "Threshold", -20.0, 0.0, 0.0);
+    auto pRatio = std::make_unique<juce::AudioParameterFloat> ("ratio", "Ratio", 1.0, 5.0, 1.0);
+    auto pAtt = std::make_unique<juce::AudioParameterFloat> ("attack", "Attack", 1.0, 1000.0, 1.0);
+    auto pRel = std::make_unique<juce::AudioParameterFloat> ("release", "Release", 1.0, 1000.0, 1.0);
     
     params.push_back(std::move(pHighPassFreq));
     params.push_back(std::move(pLowPassFreq));
@@ -63,17 +79,24 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     params.push_back(std::move(pDamp));
     params.push_back(std::move(pWidth));
     params.push_back(std::move(pBlend));
-    params.push_back(std::move(pMix));
     params.push_back(std::move(pFreeze));
+    params.push_back(std::move(pGateOnOff));
+    params.push_back(std::move(pThres));
+    params.push_back(std::move(pRatio));
+    params.push_back(std::move(pAtt));
+    params.push_back(std::move(pRel));
+    params.push_back(std::move(pMix));
     
     return { params.begin(), params.end() };
 }
 
 void COLOURAUMAudioProcessor::parameterChanged(const juce::String &parameterID, float newValue)
 {
+    // pre filters
     highPassFilter.setCutoffFrequency(treeState.getRawParameterValue("hiPass")->load());
     lowPassFilter.setCutoffFrequency(treeState.getRawParameterValue("loPass")->load());
     
+    //reverb params
     reverbParams.roomSize = treeState.getRawParameterValue("size")->load();
     reverbParams.damping = treeState.getRawParameterValue("damp")->load();
     reverbParams.width = treeState.getRawParameterValue("width")->load();
@@ -81,6 +104,13 @@ void COLOURAUMAudioProcessor::parameterChanged(const juce::String &parameterID, 
 //    reverbParams.dryLevel = 1.0f - treeState.getRawParameterValue("mix")->load();
     reverbParams.freezeMode = treeState.getRawParameterValue("freeze")->load();
     reverbModule.setParameters(reverbParams);
+    
+    //gate params
+    gateOnOff = treeState.getRawParameterValue("gate")->load();
+    gateModule.setThreshold(treeState.getRawParameterValue("threshold")->load());
+    gateModule.setRatio(treeState.getRawParameterValue("ratio")->load());
+    gateModule.setAttack(treeState.getRawParameterValue("attack")->load());
+    gateModule.setRelease(treeState.getRawParameterValue("release")->load());
     
     // Mix module mix param
     mixModule.setWetMixProportion(treeState.getRawParameterValue("main mix")->load());
@@ -156,6 +186,16 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     spec.maximumBlockSize = samplesPerBlock;
     spec.numChannels = getTotalNumOutputChannels();
     
+    // pre filters and prep
+    highPassFilter.prepare(spec);
+    highPassFilter.setType(juce::dsp::LinkwitzRileyFilterType::highpass);
+    highPassFilter.setCutoffFrequency(treeState.getRawParameterValue("hiPass")->load());
+    
+    lowPassFilter.prepare(spec);
+    lowPassFilter.setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
+    lowPassFilter.setCutoffFrequency(treeState.getRawParameterValue("loPass")->load());
+    
+    // reverb params and prep
     reverbModule.prepare(spec);
     reverbParams.roomSize = treeState.getRawParameterValue("size")->load();
     reverbParams.damping = treeState.getRawParameterValue("damp")->load();
@@ -165,17 +205,19 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     reverbParams.freezeMode = treeState.getRawParameterValue("freeze")->load();
     reverbModule.setParameters(reverbParams);
     
+    // gate params and prep
+    gateOnOff = treeState.getRawParameterValue("gate")->load();
+    gateModule.prepare(spec);
+    gateModule.setThreshold(treeState.getRawParameterValue("threshold")->load());
+    gateModule.setRatio(treeState.getRawParameterValue("ratio")->load());
+    gateModule.setAttack(treeState.getRawParameterValue("attack")->load());
+    gateModule.setRelease(treeState.getRawParameterValue("release")->load());
+    
     // Mix module mix param
     mixModule.prepare(spec);
     mixModule.setWetMixProportion(treeState.getRawParameterValue("main mix")->load());
     
-    highPassFilter.prepare(spec);
-    highPassFilter.setType(juce::dsp::LinkwitzRileyFilterType::highpass);
-    highPassFilter.setCutoffFrequency(treeState.getRawParameterValue("hiPass")->load());
     
-    lowPassFilter.prepare(spec);
-    lowPassFilter.setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
-    lowPassFilter.setCutoffFrequency(treeState.getRawParameterValue("loPass")->load());
 }
 
 void COLOURAUMAudioProcessor::releaseResources()
@@ -218,8 +260,6 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
 
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
-
-    
     
     reverbParams.roomSize = treeState.getRawParameterValue("size")->load();
     reverbParams.damping = treeState.getRawParameterValue("damp")->load();
@@ -240,6 +280,7 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     highPassFilter.process(context);
     lowPassFilter.process(context);
     reverbModule.process(context);
+    if (gateOnOff) { gateModule.process(context); }
 
     mixModule.mixWetSamples(output);
 }
