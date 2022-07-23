@@ -60,6 +60,10 @@ private:
     juce::dsp::LinkwitzRileyFilter<float> highPassFilter;
     juce::dsp::LinkwitzRileyFilter<float> lowPassFilter;
     
+    // chorus object
+    juce::dsp::Chorus<float> chorusModule;
+    bool chorusOnOff { false };
+    
     //reverb and params
     juce::dsp::Reverb::Parameters reverbParams;
     juce::dsp::Reverb reverbModule;
