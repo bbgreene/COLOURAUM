@@ -332,7 +332,6 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     mixModule.pushDrySamples(input);
     
     if (filtersOnOff) { highPassFilter.process(context); lowPassFilter.process(context); }
-    lowPassFilter.process(context);
     if (chorusOnOff) { chorusModule.process(context); }
     if (reverbOnOff) { reverbModule.process(context); }
     if (gateOnOff) { gateModule.process(context); }
