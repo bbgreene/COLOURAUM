@@ -57,6 +57,7 @@ public:
 private:
     
     // pre filters
+    bool filtersOnOff { false };
     juce::dsp::LinkwitzRileyFilter<float> highPassFilter;
     juce::dsp::LinkwitzRileyFilter<float> lowPassFilter;
     
@@ -65,6 +66,7 @@ private:
     bool chorusOnOff { false };
     
     //reverb and params
+    bool reverbOnOff { true };
     juce::dsp::Reverb::Parameters reverbParams;
     juce::dsp::Reverb reverbModule;
     
