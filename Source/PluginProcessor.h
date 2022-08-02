@@ -9,6 +9,8 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "../Source/Reverb/ReverbDSP.h"
+#include "../Source/Reverb/ReverbUtilities.h"
 
 //==============================================================================
 /**
@@ -67,8 +69,10 @@ private:
     
     //reverb and params
     bool reverbOnOff { true };
-    juce::dsp::Reverb::Parameters reverbParams;
-    juce::dsp::Reverb reverbModule;
+    bbg_dsp::ReverbUtilities::Parameters reverbParams;
+    bbg_dsp::Reverb reverbModule;
+//    juce::dsp::Reverb::Parameters reverbParams;
+//    juce::dsp::Reverb reverbModule;
     
     // gate
     bool gateOnOff { false };
