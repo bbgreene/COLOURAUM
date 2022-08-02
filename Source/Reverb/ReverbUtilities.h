@@ -9,7 +9,6 @@
 */
 
 #pragma once
-#include "ReverbUtilities.h"
 
 namespace bbg_dsp
 {
@@ -47,6 +46,7 @@ public:
         float width      = 1.0f;     /**< Reverb width, 0 to 1.0, where 1.0 is very wide. */
         float freezeMode = 0.0f;     /**< Freeze mode - values < 0.5 are "normal" mode, values > 0.5
                                           put the reverb into a continuous feedback loop. */
+        int reverbType = 0;
     };
 
     //==============================================================================
@@ -66,10 +66,56 @@ public:
         dryGain.setTargetValue (newParams.dryLevel * dryScaleFactor);
         wetGain1.setTargetValue (0.5f * wet * (1.0f + newParams.width));
         wetGain2.setTargetValue (0.5f * wet * (1.0f - newParams.width));
-
+        
+//        reverbTypeValue = static_cast<int>(newParams.reverbType);
+        
         gain = isFrozen (newParams.freezeMode) ? 0.0f : 0.015f;
         parameters = newParams;
         updateDamping();
+    }
+    
+    static const short* setTuning(int choice)
+    {
+        if(choice == 0)
+        {
+            static const short combTunings[] = { 838, 1015, 1279, 1368, 1632, 1809, 1897, 2073 }; // 19, 23, 29, 31, 37, 41, 43, 47 ms prime numbers
+            return combTunings;
+        }
+        if(choice == 1)
+        {
+            static const short combTunings[] = { 20050, 1188, 1277, 1356, 1422, 1491, 1557, 1617 };
+            return combTunings;
+        }
+//        static const short combTunings[] = { 838, 1015, 1279, 1368, 1632, 1809, 1897, 2073 };
+//        return combTunings;
+    }
+    
+    void reverbTuning(const double sampleRate)
+    {
+        jassert (sampleRate > 0);
+        
+//        static const short combTunings[] = { 1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617 }; // (at 44100Hz)
+//        static const short allPassTunings[] = { 556, 441, 341, 225 };
+    
+        
+//        static const short combTunings[] = { 838, 1015, 1279, 1368, 1632, 1809, 1897, 2073 }; // 19, 23, 29, 31, 37, 41, 43, 47 ms prime numbers
+        static const short* combPtr = setTuning(0);
+    
+        static const short allPassTunings[] = { 574, 486, 309, 221 }; // 13, 11, 7, 5 ms prime numbers
+        const int stereoSpread = 23;
+        const int intSampleRate = (int) sampleRate;
+
+        for (int i = 0; i < numCombs; ++i)
+        {
+            comb[0][i].setSize ((intSampleRate * combPtr[i]) / 44100);
+            comb[1][i].setSize ((intSampleRate * (combPtr[i] + stereoSpread)) / 44100);
+        }
+
+        for (int i = 0; i < numAllPasses; ++i)
+        {
+            allPass[0][i].setSize ((intSampleRate * allPassTunings[i]) / 44100);
+            allPass[1][i].setSize ((intSampleRate * (allPassTunings[i] + stereoSpread)) / 44100);
+        }
     }
 
     //==============================================================================
@@ -78,27 +124,7 @@ public:
     */
     void setSampleRate (const double sampleRate)
     {
-        jassert (sampleRate > 0);
-
-//        static const short combTunings[] = { 1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617 }; // (at 44100Hz)
-//        static const short allPassTunings[] = { 556, 441, 341, 225 };
-        
-        static const short combTunings[] = { 838, 1015, 1279, 1368, 1632, 1809, 1897, 2073 }; // 19, 23, 29, 31, 37, 41, 43, 47 ms prime numbers
-        static const short allPassTunings[] = { 574, 486, 309, 221 }; // 13, 11, 7, 5 ms prime numbers
-        const int stereoSpread = 23;
-        const int intSampleRate = (int) sampleRate;
-
-        for (int i = 0; i < numCombs; ++i)
-        {
-            comb[0][i].setSize ((intSampleRate * combTunings[i]) / 44100);
-            comb[1][i].setSize ((intSampleRate * (combTunings[i] + stereoSpread)) / 44100);
-        }
-
-        for (int i = 0; i < numAllPasses; ++i)
-        {
-            allPass[0][i].setSize ((intSampleRate * allPassTunings[i]) / 44100);
-            allPass[1][i].setSize ((intSampleRate * (allPassTunings[i] + stereoSpread)) / 44100);
-        }
+        reverbTuning(sampleRate);
 
         const double smoothTime = 0.01;
         damping .reset (sampleRate, smoothTime);
@@ -300,6 +326,7 @@ private:
     AllPassFilter allPass [numChannels][numAllPasses];
 
     juce::SmoothedValue<float> damping, feedback, dryGain, wetGain1, wetGain2;
+    int reverbTypeValue;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ReverbUtilities)
 };

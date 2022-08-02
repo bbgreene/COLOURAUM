@@ -32,6 +32,7 @@ COLOURAUMAudioProcessor::COLOURAUMAudioProcessor()
     treeState.addParameterListener("feedback", this);
     treeState.addParameterListener("chorusMix", this);
     treeState.addParameterListener("reverb", this);
+    treeState.addParameterListener("type", this);
     treeState.addParameterListener("size", this);
     treeState.addParameterListener("damp", this);
     treeState.addParameterListener("width", this);
@@ -57,6 +58,7 @@ COLOURAUMAudioProcessor::~COLOURAUMAudioProcessor()
     treeState.removeParameterListener("feedback", this);
     treeState.removeParameterListener("chorusMix", this);
     treeState.removeParameterListener("reverb", this);
+    treeState.removeParameterListener("type", this);
     treeState.removeParameterListener("size", this);
     treeState.removeParameterListener("damp", this);
     treeState.removeParameterListener("width", this);
@@ -86,6 +88,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     auto pChorusMix = std::make_unique<juce::AudioParameterFloat>("chorusMix", "ChorusMix", 0, 1.0, 0.7);
     
     auto pReverbOnOff = std::make_unique<juce::AudioParameterBool> ("reverb", "Reverb", true);
+    auto pReverbType = std::make_unique<juce::AudioParameterInt> ("type", "Type", 0, 2, 0);
     auto pSize = std::make_unique<juce::AudioParameterFloat> ("size", "Size", 0.0, 1.0, 0.45);
     auto pDamp = std::make_unique<juce::AudioParameterFloat> ("damp", "Damp", 0.0, 1.0, 0.97);
     auto pWidth = std::make_unique<juce::AudioParameterFloat> ("width", "Width", 0.0, 1.0, 0.55);
@@ -111,6 +114,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     params.push_back(std::move(pChorusMix));
     params.push_back(std::move(pReverbOnOff));
     params.push_back(std::move(pSize));
+    params.push_back(std::move(pReverbType));
     params.push_back(std::move(pDamp));
     params.push_back(std::move(pWidth));
     params.push_back(std::move(pBlend));
@@ -142,6 +146,7 @@ void COLOURAUMAudioProcessor::parameterChanged(const juce::String &parameterID, 
     
     //reverb params
     reverbOnOff = treeState.getRawParameterValue("reverb")->load();
+    reverbParams.reverbType = treeState.getRawParameterValue("type")->load();
     reverbParams.roomSize = treeState.getRawParameterValue("size")->load();
     reverbParams.damping = treeState.getRawParameterValue("damp")->load();
     reverbParams.width = treeState.getRawParameterValue("width")->load();
@@ -252,6 +257,7 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     
     // reverb params and prep
     reverbOnOff = treeState.getRawParameterValue("reverb")->load();
+    reverbParams.reverbType = treeState.getRawParameterValue("type")->load();
     reverbModule.prepare(spec);
     reverbParams.roomSize = treeState.getRawParameterValue("size")->load();
     reverbParams.damping = treeState.getRawParameterValue("damp")->load();
@@ -315,6 +321,7 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
     
+    reverbParams.reverbType = treeState.getRawParameterValue("type")->load();
     reverbParams.roomSize = treeState.getRawParameterValue("size")->load();
     reverbParams.damping = treeState.getRawParameterValue("damp")->load();
     reverbParams.width = treeState.getRawParameterValue("width")->load();
