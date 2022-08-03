@@ -11,6 +11,7 @@
 #include <JuceHeader.h>
 #include "../Source/Reverb/ReverbDSP.h"
 #include "../Source/Reverb/ReverbUtilities.h"
+#include "../Source/Reverb/FractionalDelay.h"
 
 //==============================================================================
 /**
@@ -66,6 +67,10 @@ private:
     // chorus object
     juce::dsp::Chorus<float> chorusModule;
     bool chorusOnOff { false };
+    
+    FractionalDelay predelay;
+    float predelayMS = 0.0;
+    float Fs = 44100.0;
     
     //reverb and params
     bool reverbOnOff { true };

@@ -6,6 +6,10 @@
   <MAINGROUP id="kH8SW2" name="COLOURAUM">
     <GROUP id="{F150B744-FFC4-867D-1793-EEFFE63C5B0A}" name="Source">
       <GROUP id="{A9349464-6C05-43A6-EEA0-AE5B3BFC1A8E}" name="Reverb">
+        <FILE id="q3iAZ2" name="FractionalDelay.cpp" compile="1" resource="0"
+              file="Source/Reverb/FractionalDelay.cpp"/>
+        <FILE id="hnkkgn" name="FractionalDelay.h" compile="0" resource="0"
+              file="Source/Reverb/FractionalDelay.h"/>
         <FILE id="ckDWWa" name="ReverbDSP.h" compile="0" resource="0" file="Source/Reverb/ReverbDSP.h"/>
         <FILE id="BS6UjA" name="ReverbUtilities.h" compile="0" resource="0"
               file="Source/Reverb/ReverbUtilities.h"/>
