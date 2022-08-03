@@ -68,6 +68,7 @@ private:
     juce::dsp::Chorus<float> chorusModule;
     bool chorusOnOff { false };
     
+    //Predelay object and params
     FractionalDelay predelay;
     float predelayMS = 0.0;
     float Fs = 44100.0;
@@ -76,8 +77,6 @@ private:
     bool reverbOnOff { true };
     bbg_dsp::ReverbUtilities::Parameters reverbParams;
     bbg_dsp::Reverb reverbModule;
-//    juce::dsp::Reverb::Parameters reverbParams;
-//    juce::dsp::Reverb reverbModule;
     
     // gate
     bool gateOnOff { false };

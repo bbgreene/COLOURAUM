@@ -326,9 +326,10 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
     
+    //Predelay
     predelay.setDepth(0.0f);
     predelay.setSpeed(0.0f);
-    
+    //move this outside of process block?
     float predelaySec = predelayMS * 0.001;
     float predelaySamples = predelaySec * Fs;
     predelay.setDelaySamples(predelaySamples);
@@ -337,9 +338,7 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     reverbParams.damping = treeState.getRawParameterValue("damp")->load();
     reverbParams.width = treeState.getRawParameterValue("width")->load();
     reverbParams.wetLevel = treeState.getRawParameterValue("blend")->load();
-//    reverbParams.dryLevel = 1.0f - treeState.getRawParameterValue("mix")->load();
     reverbParams.freezeMode = treeState.getRawParameterValue("freeze")->load();
-    
     reverbModule.setParameters(reverbParams);
     
     juce::dsp::AudioBlock<float> block (buffer);
