@@ -342,16 +342,6 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     
     reverbModule.setParameters(reverbParams);
     
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        for (int n = 0; n < buffer.getNumSamples(); ++n)
-        {
-            float x = buffer.getWritePointer(channel)[n];
-            float y = predelay.processSample(x, channel);
-            buffer.getWritePointer(channel)[n] = y;
-        }
-    }
-    
     juce::dsp::AudioBlock<float> block (buffer);
     juce::dsp::ProcessContextReplacing<float> context (block);
     const auto& input = context.getInputBlock();
@@ -361,7 +351,20 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     
     if (filtersOnOff) { highPassFilter.process(context); lowPassFilter.process(context); }
     if (chorusOnOff) { chorusModule.process(context); }
-    if (reverbOnOff) { reverbModule.process(context); }
+    if (reverbOnOff)
+    {
+        for (int channel = 0; channel < block.getNumChannels(); ++channel)
+        {
+            auto* channelData = block.getChannelPointer(channel);
+
+            for(int sample = 0; sample < block.getNumSamples(); ++sample)
+            {
+                float x = channelData[sample];
+                channelData[sample] = predelay.processSample(x, channel);
+            }
+        }
+        reverbModule.process(context);
+    }
     if (gateOnOff) { gateModule.process(context); }
 
     mixModule.mixWetSamples(output);
