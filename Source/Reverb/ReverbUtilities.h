@@ -83,8 +83,19 @@ public:
 //        static const short combTunings[] = { 1116, 1188, 1277, 1356, 1422, 1491, 1557, 1617 }; // (at 44100Hz)
 //        static const short allPassTunings[] = { 556, 441, 341, 225 };
         
-        static const short combTunings[] = { 838, 1015, 1279, 1368, 1632, 1809, 1897, 2073 }; // 19, 23, 29, 31, 37, 41, 43, 47 ms prime numbers
-        static const short allPassTunings[] = { 574, 486, 309, 221 }; // 13, 11, 7, 5 ms prime numbers
+//        // Prime
+//        static const short combTunings[] = { 838, 1015, 1279, 1368, 1632, 1809, 1897, 2073 }; // 19, 23, 29, 31, 37, 41, 43, 47 ms prime numbers
+//        static const short allPassTunings[] = { 574, 486, 309, 221 }; // 13, 11, 7, 5 ms prime numbers
+//
+//        // Prime comb origianl allpass
+//        static const short combTunings[] = { 838, 1015, 1279, 1368, 1632, 1809, 1897, 2073 }; // 19, 23, 29, 31, 37, 41, 43, 47 ms prime numbers
+//        static const short allPassTunings[] = { 556, 441, 341, 225 };
+        
+        // Original minus 50 each
+        static const short combTunings[] = { 1066, 1138, 1227, 1306, 1372, 1441, 1507, 1567 }; // (at 44100Hz)
+        static const short allPassTunings[] = { 506, 391, 291, 175 };
+        
+        
         const int stereoSpread = 23;
         const int intSampleRate = (int) sampleRate;
 
