@@ -154,14 +154,13 @@ void COLOURAUMAudioProcessor::parameterChanged(const juce::String &parameterID, 
     
     //reverb params
     reverbOnOff = treeState.getRawParameterValue("reverb")->load();
-    predelayMS = treeState.getRawParameterValue("predelay")->load();
+    predelayMS.setTargetValue(treeState.getRawParameterValue("predelay")->load());
     preSpeed = treeState.getRawParameterValue("speed")->load();
     preDepth = treeState.getRawParameterValue("predepth")->load();
     reverbParams.roomSize = treeState.getRawParameterValue("size")->load();
     reverbParams.damping = treeState.getRawParameterValue("damp")->load();
     reverbParams.width = treeState.getRawParameterValue("width")->load();
     reverbParams.wetLevel = treeState.getRawParameterValue("blend")->load();
-//    reverbParams.dryLevel = 1.0f - treeState.getRawParameterValue("mix")->load();
     reverbParams.freezeMode = treeState.getRawParameterValue("freeze")->load();
     reverbModule.setParameters(reverbParams);
     
@@ -269,7 +268,8 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     predelay.setFs(sampleRate);
     predelay.setDelaySamples(0.0f);
     Fs = sampleRate;
-    predelayMS = treeState.getRawParameterValue("predelay")->load();
+    predelayMS.reset(sampleRate, 0.001);
+    predelayMS.setCurrentAndTargetValue(treeState.getRawParameterValue("predelay")->load());
     preSpeed = treeState.getRawParameterValue("speed")->load();
     preDepth = treeState.getRawParameterValue("predepth")->load();
     
@@ -280,7 +280,6 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     reverbParams.damping = treeState.getRawParameterValue("damp")->load();
     reverbParams.width = treeState.getRawParameterValue("width")->load();
     reverbParams.wetLevel = treeState.getRawParameterValue("blend")->load();
-//    reverbParams.dryLevel = 1.0f - treeState.getRawParameterValue("mix")->load();
     reverbParams.freezeMode = treeState.getRawParameterValue("freeze")->load();
     reverbModule.setParameters(reverbParams);
     
@@ -342,7 +341,7 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     predelay.setDepth(preDepth);
     predelay.setSpeed(preSpeed);
     //move this outside of process block?
-    float predelaySec = predelayMS * 0.001;
+    float predelaySec = predelayMS.getNextValue() * 0.001;
     float predelaySamples = predelaySec * Fs;
     predelay.setDelaySamples(predelaySamples);
     
