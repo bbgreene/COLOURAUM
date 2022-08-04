@@ -68,10 +68,18 @@ private:
     juce::dsp::Chorus<float> chorusModule;
     bool chorusOnOff { false };
     
+    //Early Reflections
+    bool earlyOnOff { false };
+    FractionalDelay earlyA, earlyB, earlyC, earlyD;
+    float earlyAMS = 10.0;
+    float earlyBMS = 25.0;
+    float earlyCMS = 55.0;
+    float earlyDMS = 76.0;
+    
     //Predelay object and params
     FractionalDelay predelay;
-    
     juce::LinearSmoothedValue<float> predelayMS { 0.0 };
+//    float predelayMS = 0.0;
     float Fs = 44100.0;
     float preSpeed = 0.0;
     float preDepth = 0.0;

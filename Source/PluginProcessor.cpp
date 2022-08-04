@@ -32,6 +32,7 @@ COLOURAUMAudioProcessor::COLOURAUMAudioProcessor()
     treeState.addParameterListener("feedback", this);
     treeState.addParameterListener("chorusMix", this);
     treeState.addParameterListener("reverb", this);
+    treeState.addParameterListener("er", this);
     treeState.addParameterListener("predelay", this);
     treeState.addParameterListener("speed", this);
     treeState.addParameterListener("predepth", this);
@@ -60,6 +61,7 @@ COLOURAUMAudioProcessor::~COLOURAUMAudioProcessor()
     treeState.removeParameterListener("feedback", this);
     treeState.removeParameterListener("chorusMix", this);
     treeState.removeParameterListener("reverb", this);
+    treeState.removeParameterListener("er", this);
     treeState.removeParameterListener("predelay", this);
     treeState.removeParameterListener("speed", this);
     treeState.removeParameterListener("predepth", this);
@@ -92,6 +94,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     auto pChorusMix = std::make_unique<juce::AudioParameterFloat>("chorusMix", "ChorusMix", 0, 1.0, 0.7);
     
     auto pReverbOnOff = std::make_unique<juce::AudioParameterBool> ("reverb", "Reverb", true);
+    auto pEarlyOnOff = std::make_unique<juce::AudioParameterBool> ("er", "ER", true);
     auto pSize = std::make_unique<juce::AudioParameterFloat> ("size", "Size", 0.0, 1.0, 0.45);
     auto pPredelay = std::make_unique<juce::AudioParameterFloat> ("predelay", "Predelay", 0.0, 200.0, 0.01);
     auto pPreSpeed = std::make_unique<juce::AudioParameterFloat> ("speed", "Speed", 0.0, 200.0, 0.01);
@@ -119,6 +122,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     params.push_back(std::move(pFeedback));
     params.push_back(std::move(pChorusMix));
     params.push_back(std::move(pReverbOnOff));
+    params.push_back(std::move(pEarlyOnOff));
     params.push_back(std::move(pPredelay));
     params.push_back(std::move(pPreSpeed));
     params.push_back(std::move(pPreDepth));
@@ -154,13 +158,16 @@ void COLOURAUMAudioProcessor::parameterChanged(const juce::String &parameterID, 
     
     //reverb params
     reverbOnOff = treeState.getRawParameterValue("reverb")->load();
+    earlyOnOff = treeState.getRawParameterValue("er")->load();
     predelayMS.setTargetValue(treeState.getRawParameterValue("predelay")->load());
+//    predelayMS = treeState.getRawParameterValue("predelay")->load();
     preSpeed = treeState.getRawParameterValue("speed")->load();
     preDepth = treeState.getRawParameterValue("predepth")->load();
     reverbParams.roomSize = treeState.getRawParameterValue("size")->load();
     reverbParams.damping = treeState.getRawParameterValue("damp")->load();
     reverbParams.width = treeState.getRawParameterValue("width")->load();
     reverbParams.wetLevel = treeState.getRawParameterValue("blend")->load();
+//    reverbParams.dryLevel = 1.0f - treeState.getRawParameterValue("mix")->load();
     reverbParams.freezeMode = treeState.getRawParameterValue("freeze")->load();
     reverbModule.setParameters(reverbParams);
     
@@ -264,12 +271,26 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     chorusModule.setFeedback(treeState.getRawParameterValue("feedback")->load());
     chorusModule.setMix(treeState.getRawParameterValue("chorusMix")->load());
     
+    // for fractional delays
+    Fs = sampleRate;
+    
+    //Early Reflections
+    earlyOnOff = treeState.getRawParameterValue("er")->load();
+    earlyA.setFs(sampleRate);
+    earlyA.setDelaySamples(0.0f);
+    earlyB.setFs(sampleRate);
+    earlyB.setDelaySamples(0.0f);
+    earlyC.setFs(sampleRate);
+    earlyC.setDelaySamples(0.0f);
+    earlyD.setFs(sampleRate);
+    earlyD.setDelaySamples(0.0f);
+    
     //Predelay
     predelay.setFs(sampleRate);
     predelay.setDelaySamples(0.0f);
-    Fs = sampleRate;
-    predelayMS.reset(sampleRate, 0.001);
+    predelayMS.reset(sampleRate, 0.002);
     predelayMS.setCurrentAndTargetValue(treeState.getRawParameterValue("predelay")->load());
+//    predelayMS = treeState.getRawParameterValue("predelay")->load();
     preSpeed = treeState.getRawParameterValue("speed")->load();
     preDepth = treeState.getRawParameterValue("predepth")->load();
     
@@ -280,6 +301,7 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     reverbParams.damping = treeState.getRawParameterValue("damp")->load();
     reverbParams.width = treeState.getRawParameterValue("width")->load();
     reverbParams.wetLevel = treeState.getRawParameterValue("blend")->load();
+//    reverbParams.dryLevel = 1.0f - treeState.getRawParameterValue("mix")->load();
     reverbParams.freezeMode = treeState.getRawParameterValue("freeze")->load();
     reverbModule.setParameters(reverbParams);
     
@@ -337,13 +359,40 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
     
-    //Predelay
-    predelay.setDepth(preDepth);
-    predelay.setSpeed(preSpeed);
+    //ERs
+    earlyA.setDepth(preDepth);
+    earlyA.setSpeed(preDepth);
+    float earlyASec = earlyAMS * 0.001;
+    float earlyASamples = earlyASec * Fs;
+    earlyA.setDelaySamples(earlyASamples);
+    
+    earlyB.setDepth(preDepth);
+    earlyB.setSpeed(preDepth);
+    float earlyBSec = earlyBMS * 0.001;
+    float earlyBSamples = earlyBSec * Fs;
+    earlyB.setDelaySamples(earlyBSamples);
+    
+    earlyC.setDepth(preDepth);
+    earlyC.setSpeed(preDepth);
+    float earlyCSec = earlyCMS * 0.001;
+    float earlyCSamples = earlyCSec * Fs;
+    earlyC.setDelaySamples(earlyCSamples);
+    
+    earlyD.setDepth(preDepth);
+    earlyD.setSpeed(preDepth);
+    float earlyDSec = earlyDMS * 0.001;
+    float earlyDSamples = earlyDSec * Fs;
+    earlyD.setDelaySamples(earlyDSamples);
     //move this outside of process block?
-    float predelaySec = predelayMS.getNextValue() * 0.001;
-    float predelaySamples = predelaySec * Fs;
-    predelay.setDelaySamples(predelaySamples);
+    
+    
+    //Predelay
+//    predelay.setDepth(preDepth);
+//    predelay.setSpeed(preSpeed);
+//    //move this outside of process block?
+//    float predelaySec = predelayMS.getNextValue() * 0.001;
+//    float predelaySamples = predelaySec * Fs;
+//    predelay.setDelaySamples(predelaySamples);
     
     reverbParams.roomSize = treeState.getRawParameterValue("size")->load();
     reverbParams.damping = treeState.getRawParameterValue("damp")->load();
@@ -363,16 +412,32 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     if (chorusOnOff) { chorusModule.process(context); }
     if (reverbOnOff)
     {
-        for (int channel = 0; channel < block.getNumChannels(); ++channel)
+        if(earlyOnOff)
         {
-            auto* channelData = block.getChannelPointer(channel);
-
-            for(int sample = 0; sample < block.getNumSamples(); ++sample)
+            for (int channel = 0; channel < block.getNumChannels(); ++channel)
             {
-                float x = channelData[sample];
-                channelData[sample] = predelay.processSample(x, channel);
+                auto* channelData = block.getChannelPointer(channel);
+
+                for(int sample = 0; sample < block.getNumSamples(); ++sample)
+                {
+                    float a = channelData[sample];
+                    channelData[sample] = earlyA.processSample(a, channel) + earlyB.processSample(a, channel) + earlyC.processSample(a, channel) + earlyD.processSample(a, channel);
+                    channelData[sample] *= 0.5;
+                }
             }
         }
+        
+        
+//        for (int channel = 0; channel < block.getNumChannels(); ++channel)
+//        {
+//            auto* channelData = block.getChannelPointer(channel);
+//
+//            for(int sample = 0; sample < block.getNumSamples(); ++sample)
+//            {
+//                float x = channelData[sample];
+//                channelData[sample] = predelay.processSample(x, channel);
+//            }
+//        }
         reverbModule.process(context);
     }
     if (gateOnOff) { gateModule.process(context); }
