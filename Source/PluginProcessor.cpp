@@ -33,6 +33,8 @@ COLOURAUMAudioProcessor::COLOURAUMAudioProcessor()
     treeState.addParameterListener("chorusMix", this);
     treeState.addParameterListener("reverb", this);
     treeState.addParameterListener("predelay", this);
+    treeState.addParameterListener("speed", this);
+    treeState.addParameterListener("predepth", this);
     treeState.addParameterListener("size", this);
     treeState.addParameterListener("damp", this);
     treeState.addParameterListener("width", this);
@@ -59,6 +61,8 @@ COLOURAUMAudioProcessor::~COLOURAUMAudioProcessor()
     treeState.removeParameterListener("chorusMix", this);
     treeState.removeParameterListener("reverb", this);
     treeState.removeParameterListener("predelay", this);
+    treeState.removeParameterListener("speed", this);
+    treeState.removeParameterListener("predepth", this);
     treeState.removeParameterListener("size", this);
     treeState.removeParameterListener("damp", this);
     treeState.removeParameterListener("width", this);
@@ -90,6 +94,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     auto pReverbOnOff = std::make_unique<juce::AudioParameterBool> ("reverb", "Reverb", true);
     auto pSize = std::make_unique<juce::AudioParameterFloat> ("size", "Size", 0.0, 1.0, 0.45);
     auto pPredelay = std::make_unique<juce::AudioParameterFloat> ("predelay", "Predelay", 0.0, 200.0, 0.01);
+    auto pPreSpeed = std::make_unique<juce::AudioParameterFloat> ("speed", "Speed", 0.0, 200.0, 0.01);
+    auto pPreDepth = std::make_unique<juce::AudioParameterFloat> ("predepth", "Predepth", 0.0, 1000.0, 0.01);
     auto pDamp = std::make_unique<juce::AudioParameterFloat> ("damp", "Damp", 0.0, 1.0, 0.97);
     auto pWidth = std::make_unique<juce::AudioParameterFloat> ("width", "Width", 0.0, 1.0, 0.55);
     auto pBlend = std::make_unique<juce::AudioParameterFloat> ("blend", "Blend", 0.0, 1.0, 0.5); // reverb wet
@@ -114,6 +120,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     params.push_back(std::move(pChorusMix));
     params.push_back(std::move(pReverbOnOff));
     params.push_back(std::move(pPredelay));
+    params.push_back(std::move(pPreSpeed));
+    params.push_back(std::move(pPreDepth));
     params.push_back(std::move(pSize));
     params.push_back(std::move(pDamp));
     params.push_back(std::move(pWidth));
@@ -147,6 +155,8 @@ void COLOURAUMAudioProcessor::parameterChanged(const juce::String &parameterID, 
     //reverb params
     reverbOnOff = treeState.getRawParameterValue("reverb")->load();
     predelayMS = treeState.getRawParameterValue("predelay")->load();
+    preSpeed = treeState.getRawParameterValue("speed")->load();
+    preDepth = treeState.getRawParameterValue("predepth")->load();
     reverbParams.roomSize = treeState.getRawParameterValue("size")->load();
     reverbParams.damping = treeState.getRawParameterValue("damp")->load();
     reverbParams.width = treeState.getRawParameterValue("width")->load();
@@ -260,6 +270,8 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     predelay.setDelaySamples(0.0f);
     Fs = sampleRate;
     predelayMS = treeState.getRawParameterValue("predelay")->load();
+    preSpeed = treeState.getRawParameterValue("speed")->load();
+    preDepth = treeState.getRawParameterValue("predepth")->load();
     
     // reverb params and prep
     reverbOnOff = treeState.getRawParameterValue("reverb")->load();
@@ -327,8 +339,8 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
         buffer.clear (i, 0, buffer.getNumSamples());
     
     //Predelay
-    predelay.setDepth(0.0f);
-    predelay.setSpeed(0.0f);
+    predelay.setDepth(preDepth);
+    predelay.setSpeed(preSpeed);
     //move this outside of process block?
     float predelaySec = predelayMS * 0.001;
     float predelaySamples = predelaySec * Fs;

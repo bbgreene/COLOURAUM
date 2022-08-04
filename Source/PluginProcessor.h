@@ -72,6 +72,8 @@ private:
     FractionalDelay predelay;
     float predelayMS = 0.0;
     float Fs = 44100.0;
+    float preSpeed = 0.0;
+    float preDepth = 0.0;
     
     //reverb and params
     bool reverbOnOff { true };
