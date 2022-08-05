@@ -49,7 +49,10 @@ private:
     float speed = 1.0f; // Hz, frequency of LFO
     float depth = 10.0f; // percentage of intensity, control amp of LFO
 
+    float twoPiMultiplier = 2.f * M_PI;
     float currentAngle[2] = { 0.0f };
-    float angleChange = speed * (1.f / Fs) * 2.f * M_PI;
+    float angleChange = speed * (1.f / Fs) * twoPiMultiplier;
+    
+    
 
 };

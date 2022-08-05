@@ -33,8 +33,8 @@ float FractionalDelay::processSample(float x, int channel) {
         lfo = depth * sin(currentAngle[channel]);
 
         currentAngle[channel] += angleChange;
-        if (currentAngle[channel] > 2.f * M_PI) {
-            currentAngle[channel] -= 2.f * M_PI;
+        if (currentAngle[channel] > twoPiMultiplier) {
+            currentAngle[channel] -= twoPiMultiplier;
         }
 
         // Delay Buffer
@@ -86,7 +86,7 @@ void FractionalDelay::setDelaySamples(float delay) {
 void FractionalDelay::setSpeed(float speed) {
     if (speed >= 0.1f && speed <= 10.0f) {
         this->speed = speed;
-        angleChange = speed * (1.f / Fs) * 2 * M_PI;
+        angleChange = speed * (1.f / Fs) * twoPiMultiplier;
     }
 }
 

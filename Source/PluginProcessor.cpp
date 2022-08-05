@@ -96,7 +96,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     auto pReverbOnOff = std::make_unique<juce::AudioParameterBool> ("reverb", "Reverb", true);
     auto pEarlyOnOff = std::make_unique<juce::AudioParameterBool> ("er", "ER", true);
     auto pSize = std::make_unique<juce::AudioParameterFloat> ("size", "Size", 0.0, 1.0, 0.45);
-    auto pPredelay = std::make_unique<juce::AudioParameterFloat> ("predelay", "Predelay", 0.0, 200.0, 0.01);
+    auto pPredelay = std::make_unique<juce::AudioParameterFloat> ("predelay", "Predelay", juce::NormalisableRange<float>(0.0, 200.0, 1.0, 1.0), 0.0);
     auto pPreSpeed = std::make_unique<juce::AudioParameterFloat> ("speed", "Speed", 0.0, 200.0, 0.01);
     auto pPreDepth = std::make_unique<juce::AudioParameterFloat> ("predepth", "Predepth", 0.0, 1000.0, 0.01);
     auto pDamp = std::make_unique<juce::AudioParameterFloat> ("damp", "Damp", 0.0, 1.0, 0.97);
@@ -361,25 +361,25 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     
     //ERs
     earlyA.setDepth(preDepth);
-    earlyA.setSpeed(preDepth);
+    earlyA.setSpeed(preSpeed);
     float earlyASec = earlyAMS * 0.001;
     float earlyASamples = earlyASec * Fs;
     earlyA.setDelaySamples(earlyASamples);
     
     earlyB.setDepth(preDepth);
-    earlyB.setSpeed(preDepth);
+    earlyB.setSpeed(preSpeed);
     float earlyBSec = earlyBMS * 0.001;
     float earlyBSamples = earlyBSec * Fs;
     earlyB.setDelaySamples(earlyBSamples);
     
     earlyC.setDepth(preDepth);
-    earlyC.setSpeed(preDepth);
+    earlyC.setSpeed(preSpeed);
     float earlyCSec = earlyCMS * 0.001;
     float earlyCSamples = earlyCSec * Fs;
     earlyC.setDelaySamples(earlyCSamples);
     
     earlyD.setDepth(preDepth);
-    earlyD.setSpeed(preDepth);
+    earlyD.setSpeed(preSpeed);
     float earlyDSec = earlyDMS * 0.001;
     float earlyDSamples = earlyDSec * Fs;
     earlyD.setDelaySamples(earlyDSamples);
@@ -413,7 +413,7 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     if (reverbOnOff)
     {
         if(earlyOnOff)
-        {
+        {// early reflections for loop
             for (int channel = 0; channel < block.getNumChannels(); ++channel)
             {
                 auto* channelData = block.getChannelPointer(channel);
@@ -427,7 +427,7 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
             }
         }
         
-        
+            //Pre delay for loop
 //        for (int channel = 0; channel < block.getNumChannels(); ++channel)
 //        {
 //            auto* channelData = block.getChannelPointer(channel);
