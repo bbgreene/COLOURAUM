@@ -70,11 +70,13 @@ private:
     
     //Early Reflections
     bool earlyOnOff { false };
-    FractionalDelay earlyA, earlyB, earlyC, earlyD;
+    FractionalDelay earlyA, earlyB, earlyC, earlyD , earlyE, earlyF;
     float earlyAMS = 10.0;
     float earlyBMS = 25.0;
     float earlyCMS = 55.0;
     float earlyDMS = 76.0;
+    float earlyEMS = 23.0;
+    float earlyFMS = 90.0;
     
     //Predelay object and params
     FractionalDelay predelay;

@@ -284,6 +284,10 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     earlyC.setDelaySamples(0.0f);
     earlyD.setFs(sampleRate);
     earlyD.setDelaySamples(0.0f);
+    earlyE.setFs(sampleRate);
+    earlyE.setDelaySamples(0.0f);
+    earlyF.setFs(sampleRate);
+    earlyF.setDelaySamples(0.0f);
     earlyOnOff = treeState.getRawParameterValue("er")->load();
     erSpeed = treeState.getRawParameterValue("er speed")->load();
     erDepth = treeState.getRawParameterValue("er depth")->load();
@@ -385,6 +389,18 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     float earlyDSec = earlyDMS * 0.001;
     float earlyDSamples = earlyDSec * Fs;
     earlyD.setDelaySamples(earlyDSamples);
+    
+    earlyE.setDepth(erDepth);
+    earlyE.setSpeed(erSpeed);
+    float earlyESec = earlyEMS * 0.001;
+    float earlyESamples = earlyESec * Fs;
+    earlyE.setDelaySamples(earlyESamples);
+    
+    earlyF.setDepth(erDepth);
+    earlyF.setSpeed(erSpeed);
+    float earlyFSec = earlyFMS * 0.001;
+    float earlyFSamples = earlyFSec * Fs;
+    earlyF.setDelaySamples(earlyFSamples);
     //move this outside of process block?
         
     //Predelay
@@ -415,7 +431,7 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     if (reverbOnOff)
     {
         if(earlyOnOff)
-        {// early reflections for loop// no need for channel outer for loop
+        {// early reflections for loop for stereo placement// no need for channel outer for loop
             auto* leftData = block.getChannelPointer(0);
             auto* rightData = block.getChannelPointer(1);
 
@@ -423,8 +439,10 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
             {
                 float left = leftData[sample];
                 float right = rightData[sample];
-                leftData[sample] = earlyA.processSample(left, 0) + earlyB.processSample(left, 0);
-                rightData[sample] = earlyC.processSample(right, 1) + earlyD.processSample(right, 1);
+                leftData[sample] = earlyA.processSample(left, 0) + earlyB.processSample(left, 0) + earlyE.processSample(left, 0) + earlyF.processSample(left, 0);
+                rightData[sample] = earlyC.processSample(right, 1) + earlyD.processSample(right, 1) + earlyE.processSample(right, 1) + earlyF.processSample(right, 1);
+                leftData[sample] *= 0.5;
+                rightData[sample] *= 0.5;
             }
         }
         
