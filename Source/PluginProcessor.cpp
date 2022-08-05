@@ -34,8 +34,8 @@ COLOURAUMAudioProcessor::COLOURAUMAudioProcessor()
     treeState.addParameterListener("reverb", this);
     treeState.addParameterListener("er", this);
     treeState.addParameterListener("predelay", this);
-    treeState.addParameterListener("speed", this);
-    treeState.addParameterListener("predepth", this);
+    treeState.addParameterListener("er speed", this);
+    treeState.addParameterListener("er depth", this);
     treeState.addParameterListener("size", this);
     treeState.addParameterListener("damp", this);
     treeState.addParameterListener("width", this);
@@ -63,8 +63,8 @@ COLOURAUMAudioProcessor::~COLOURAUMAudioProcessor()
     treeState.removeParameterListener("reverb", this);
     treeState.removeParameterListener("er", this);
     treeState.removeParameterListener("predelay", this);
-    treeState.removeParameterListener("speed", this);
-    treeState.removeParameterListener("predepth", this);
+    treeState.removeParameterListener("er speed", this);
+    treeState.removeParameterListener("er depth", this);
     treeState.removeParameterListener("size", this);
     treeState.removeParameterListener("damp", this);
     treeState.removeParameterListener("width", this);
@@ -97,8 +97,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     auto pEarlyOnOff = std::make_unique<juce::AudioParameterBool> ("er", "ER", true);
     auto pSize = std::make_unique<juce::AudioParameterFloat> ("size", "Size", 0.0, 1.0, 0.45);
     auto pPredelay = std::make_unique<juce::AudioParameterFloat> ("predelay", "Predelay", juce::NormalisableRange<float>(0.0, 200.0, 1.0, 1.0), 0.0);
-    auto pPreSpeed = std::make_unique<juce::AudioParameterFloat> ("speed", "Speed", 0.0, 200.0, 0.01);
-    auto pPreDepth = std::make_unique<juce::AudioParameterFloat> ("predepth", "Predepth", 0.0, 1000.0, 0.01);
+    auto pPreSpeed = std::make_unique<juce::AudioParameterFloat> ("er speed", "ER Speed", 0.0, 200.0, 0.01);
+    auto pPreDepth = std::make_unique<juce::AudioParameterFloat> ("er depth", "ER Depth", 0.0, 1000.0, 0.01);
     auto pDamp = std::make_unique<juce::AudioParameterFloat> ("damp", "Damp", 0.0, 1.0, 0.97);
     auto pWidth = std::make_unique<juce::AudioParameterFloat> ("width", "Width", 0.0, 1.0, 0.55);
     auto pBlend = std::make_unique<juce::AudioParameterFloat> ("blend", "Blend", 0.0, 1.0, 0.5); // reverb wet
@@ -159,10 +159,11 @@ void COLOURAUMAudioProcessor::parameterChanged(const juce::String &parameterID, 
     //reverb params
     reverbOnOff = treeState.getRawParameterValue("reverb")->load();
     earlyOnOff = treeState.getRawParameterValue("er")->load();
+    erSpeed = treeState.getRawParameterValue("er speed")->load();
+    erDepth = treeState.getRawParameterValue("er depth")->load();
     predelayMS.setTargetValue(treeState.getRawParameterValue("predelay")->load());
 //    predelayMS = treeState.getRawParameterValue("predelay")->load();
-    preSpeed = treeState.getRawParameterValue("speed")->load();
-    preDepth = treeState.getRawParameterValue("predepth")->load();
+    
     reverbParams.roomSize = treeState.getRawParameterValue("size")->load();
     reverbParams.damping = treeState.getRawParameterValue("damp")->load();
     reverbParams.width = treeState.getRawParameterValue("width")->load();
@@ -275,7 +276,6 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     Fs = sampleRate;
     
     //Early Reflections
-    earlyOnOff = treeState.getRawParameterValue("er")->load();
     earlyA.setFs(sampleRate);
     earlyA.setDelaySamples(0.0f);
     earlyB.setFs(sampleRate);
@@ -284,6 +284,9 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     earlyC.setDelaySamples(0.0f);
     earlyD.setFs(sampleRate);
     earlyD.setDelaySamples(0.0f);
+    earlyOnOff = treeState.getRawParameterValue("er")->load();
+    erSpeed = treeState.getRawParameterValue("er speed")->load();
+    erDepth = treeState.getRawParameterValue("er depth")->load();
     
     //Predelay
     predelay.setFs(sampleRate);
@@ -291,8 +294,7 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     predelayMS.reset(sampleRate, 0.002);
     predelayMS.setCurrentAndTargetValue(treeState.getRawParameterValue("predelay")->load());
 //    predelayMS = treeState.getRawParameterValue("predelay")->load();
-    preSpeed = treeState.getRawParameterValue("speed")->load();
-    preDepth = treeState.getRawParameterValue("predepth")->load();
+    
     
     // reverb params and prep
     reverbOnOff = treeState.getRawParameterValue("reverb")->load();
@@ -360,39 +362,38 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
         buffer.clear (i, 0, buffer.getNumSamples());
     
     //ERs
-    earlyA.setDepth(preDepth);
-    earlyA.setSpeed(preSpeed);
+    earlyA.setDepth(erDepth);
+    earlyA.setSpeed(erSpeed);
     float earlyASec = earlyAMS * 0.001;
     float earlyASamples = earlyASec * Fs;
     earlyA.setDelaySamples(earlyASamples);
     
-    earlyB.setDepth(preDepth);
-    earlyB.setSpeed(preSpeed);
+    earlyB.setDepth(erDepth);
+    earlyB.setSpeed(erSpeed);
     float earlyBSec = earlyBMS * 0.001;
     float earlyBSamples = earlyBSec * Fs;
     earlyB.setDelaySamples(earlyBSamples);
     
-    earlyC.setDepth(preDepth);
-    earlyC.setSpeed(preSpeed);
+    earlyC.setDepth(erDepth);
+    earlyC.setSpeed(erSpeed);
     float earlyCSec = earlyCMS * 0.001;
     float earlyCSamples = earlyCSec * Fs;
     earlyC.setDelaySamples(earlyCSamples);
     
-    earlyD.setDepth(preDepth);
-    earlyD.setSpeed(preSpeed);
+    earlyD.setDepth(erDepth);
+    earlyD.setSpeed(erSpeed);
     float earlyDSec = earlyDMS * 0.001;
     float earlyDSamples = earlyDSec * Fs;
     earlyD.setDelaySamples(earlyDSamples);
     //move this outside of process block?
-    
-    
+        
     //Predelay
-//    predelay.setDepth(preDepth);
-//    predelay.setSpeed(preSpeed);
-//    //move this outside of process block?
-//    float predelaySec = predelayMS.getNextValue() * 0.001;
-//    float predelaySamples = predelaySec * Fs;
-//    predelay.setDelaySamples(predelaySamples);
+    predelay.setDepth(0.0);
+    predelay.setSpeed(0.0);
+    //move this outside of process block?
+    float predelaySec = predelayMS.getNextValue() * 0.001;
+    float predelaySamples = predelaySec * Fs;
+    predelay.setDelaySamples(predelaySamples);
     
     reverbParams.roomSize = treeState.getRawParameterValue("size")->load();
     reverbParams.damping = treeState.getRawParameterValue("damp")->load();
@@ -410,34 +411,34 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     
     if (filtersOnOff) { highPassFilter.process(context); lowPassFilter.process(context); }
     if (chorusOnOff) { chorusModule.process(context); }
+    
     if (reverbOnOff)
     {
         if(earlyOnOff)
-        {// early reflections for loop
-            for (int channel = 0; channel < block.getNumChannels(); ++channel)
-            {
-                auto* channelData = block.getChannelPointer(channel);
+        {// early reflections for loop// no need for channel outer for loop
+            auto* leftData = block.getChannelPointer(0);
+            auto* rightData = block.getChannelPointer(1);
 
-                for(int sample = 0; sample < block.getNumSamples(); ++sample)
-                {
-                    float a = channelData[sample];
-                    channelData[sample] = earlyA.processSample(a, channel) + earlyB.processSample(a, channel) + earlyC.processSample(a, channel) + earlyD.processSample(a, channel);
-                    channelData[sample] *= 0.5;
-                }
+            for(int sample = 0; sample < block.getNumSamples(); ++sample)
+            {
+                float left = leftData[sample];
+                float right = rightData[sample];
+                leftData[sample] = earlyA.processSample(left, 0) + earlyB.processSample(left, 0);
+                rightData[sample] = earlyC.processSample(right, 1) + earlyD.processSample(right, 1);
             }
         }
         
-            //Pre delay for loop
-//        for (int channel = 0; channel < block.getNumChannels(); ++channel)
-//        {
-//            auto* channelData = block.getChannelPointer(channel);
-//
-//            for(int sample = 0; sample < block.getNumSamples(); ++sample)
-//            {
-//                float x = channelData[sample];
-//                channelData[sample] = predelay.processSample(x, channel);
-//            }
-//        }
+        //Pre delay for loop
+        for (int channel = 0; channel < block.getNumChannels(); ++channel)
+        {
+            auto* channelData = block.getChannelPointer(channel);
+
+            for(int sample = 0; sample < block.getNumSamples(); ++sample)
+            {
+                float x = channelData[sample];
+                channelData[sample] = predelay.processSample(x, channel);
+            }
+        }
         reverbModule.process(context);
     }
     if (gateOnOff) { gateModule.process(context); }

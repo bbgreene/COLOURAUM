@@ -81,8 +81,8 @@ private:
     juce::LinearSmoothedValue<float> predelayMS { 0.0 };
 //    float predelayMS = 0.0;
     float Fs = 44100.0;
-    float preSpeed = 0.0;
-    float preDepth = 0.0;
+    float erSpeed = 0.0;
+    float erDepth = 0.0;
     
     //reverb and params
     bool reverbOnOff { true };
