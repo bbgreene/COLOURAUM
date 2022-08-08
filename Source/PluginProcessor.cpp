@@ -450,8 +450,8 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
             {
                 float left = leftData[sample];
                 float right = rightData[sample];
-                leftData[sample] = earlyA.processSample(left, 0) + earlyB.processSample(left, 0) + earlyE.processSample(left, 0) + earlyF.processSample(left, 0);
-                rightData[sample] = earlyC.processSample(right, 1) + earlyD.processSample(right, 1) + earlyE.processSample(right, 1) + earlyF.processSample(right, 1);
+                leftData[sample] = earlyA.processSample(left, 0 , 0.9) + earlyB.processSample(left, 0, 0.8) + earlyE.processSample(left, 0, 0.7) + earlyF.processSample(left, 0, 0.5);
+                rightData[sample] = earlyC.processSample(right, 1, 0.9) + earlyD.processSample(right, 1, 0.8) + earlyE.processSample(right, 1, 0.7) + earlyF.processSample(right, 1, 0.6);
                 leftData[sample] *= 0.5;
                 rightData[sample] *= 0.5;
             }
@@ -465,7 +465,7 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
             for(int sample = 0; sample < block.getNumSamples(); ++sample)
             {
                 float x = channelData[sample];
-                channelData[sample] = predelay.processSample(x, channel);
+                channelData[sample] = predelay.processSample(x, channel, 1.0);
             }
         }
         reverbModule.process(context);
@@ -495,6 +495,24 @@ void COLOURAUMAudioProcessor::earlyTimesSelection(int selection)
         earlyDMS = 33.0;
         earlyEMS = 50.0;
         earlyFMS = 55.0;
+        break;
+            
+        case 2:
+        earlyAMS = 20.0;
+        earlyBMS = 41.0;
+        earlyCMS = 50.0;
+        earlyDMS = 70.0;
+        earlyEMS = 53.0;
+        earlyFMS = 98.0;
+        break;
+            
+        case 3:
+        earlyAMS = 25.0;
+        earlyBMS = 35.0;
+        earlyCMS = 60.0;
+        earlyDMS = 82.0;
+        earlyEMS = 23.0;
+        earlyFMS = 90.0;
         break;
             
         default:

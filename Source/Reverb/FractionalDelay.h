@@ -26,7 +26,7 @@ public:
 
     ~FractionalDelay();
 
-    float processSample(float x, int channel);
+    float processSample(float x, int channel, float gain);
 
     void setFs(float Fs);
 
