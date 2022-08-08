@@ -33,6 +33,7 @@ COLOURAUMAudioProcessor::COLOURAUMAudioProcessor()
     treeState.addParameterListener("chorusMix", this);
     treeState.addParameterListener("reverb", this);
     treeState.addParameterListener("er", this);
+    treeState.addParameterListener("er type", this);
     treeState.addParameterListener("predelay", this);
     treeState.addParameterListener("er speed", this);
     treeState.addParameterListener("er depth", this);
@@ -62,6 +63,7 @@ COLOURAUMAudioProcessor::~COLOURAUMAudioProcessor()
     treeState.removeParameterListener("chorusMix", this);
     treeState.removeParameterListener("reverb", this);
     treeState.removeParameterListener("er", this);
+    treeState.removeParameterListener("er type", this);
     treeState.removeParameterListener("predelay", this);
     treeState.removeParameterListener("er speed", this);
     treeState.removeParameterListener("er depth", this);
@@ -95,6 +97,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     
     auto pReverbOnOff = std::make_unique<juce::AudioParameterBool> ("reverb", "Reverb", true);
     auto pEarlyOnOff = std::make_unique<juce::AudioParameterBool> ("er", "ER", true);
+    auto pEarlySelection = std::make_unique<juce::AudioParameterInt>("er type", "ER Type", 0, 5, 0);
     auto pSize = std::make_unique<juce::AudioParameterFloat> ("size", "Size", 0.0, 1.0, 0.45);
     auto pPredelay = std::make_unique<juce::AudioParameterFloat> ("predelay", "Predelay", juce::NormalisableRange<float>(0.0, 200.0, 1.0, 1.0), 0.0);
     auto pPreSpeed = std::make_unique<juce::AudioParameterFloat> ("er speed", "ER Speed", 0.0, 200.0, 0.01);
@@ -123,6 +126,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     params.push_back(std::move(pChorusMix));
     params.push_back(std::move(pReverbOnOff));
     params.push_back(std::move(pEarlyOnOff));
+    params.push_back(std::move(pEarlySelection));
     params.push_back(std::move(pPredelay));
     params.push_back(std::move(pPreSpeed));
     params.push_back(std::move(pPreDepth));
@@ -159,6 +163,11 @@ void COLOURAUMAudioProcessor::parameterChanged(const juce::String &parameterID, 
     //reverb params
     reverbOnOff = treeState.getRawParameterValue("reverb")->load();
     earlyOnOff = treeState.getRawParameterValue("er")->load();
+    if(parameterID == "er type")
+    {
+        erSelection = newValue;
+        earlyTimesSelection(static_cast<int>(newValue));
+    }
     erSpeed = treeState.getRawParameterValue("er speed")->load();
     erDepth = treeState.getRawParameterValue("er depth")->load();
     predelayMS.setTargetValue(treeState.getRawParameterValue("predelay")->load());
@@ -276,6 +285,8 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     Fs = sampleRate;
     
     //Early Reflections
+    erSelection = treeState.getRawParameterValue("er type")->load();
+    earlyTimesSelection(static_cast<int>(erSelection));
     earlyA.setFs(sampleRate);
     earlyA.setDelaySamples(0.0f);
     earlyB.setFs(sampleRate);
@@ -462,6 +473,33 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     if (gateOnOff) { gateModule.process(context); }
 
     mixModule.mixWetSamples(output);
+}
+
+void COLOURAUMAudioProcessor::earlyTimesSelection(int selection)
+{
+    switch (selection)
+    {
+        case 0:
+        earlyAMS = 10.0;
+        earlyBMS = 25.0;
+        earlyCMS = 55.0;
+        earlyDMS = 76.0;
+        earlyEMS = 23.0;
+        earlyFMS = 90.0;
+        break;
+            
+        case 1:
+        earlyAMS = 7.0;
+        earlyBMS = 15.0;
+        earlyCMS = 23.0;
+        earlyDMS = 33.0;
+        earlyEMS = 50.0;
+        earlyFMS = 55.0;
+        break;
+            
+        default:
+            break;
+    }
 }
 
 //==============================================================================

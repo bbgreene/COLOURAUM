@@ -71,6 +71,8 @@ private:
     //Early Reflections
     bool earlyOnOff { false };
     FractionalDelay earlyA, earlyB, earlyC, earlyD , earlyE, earlyF;
+    int erSelection { 0 };
+    void earlyTimesSelection(int selection);
     float earlyAMS = 10.0;
     float earlyBMS = 25.0;
     float earlyCMS = 55.0;
