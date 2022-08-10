@@ -446,32 +446,44 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     if (filtersOnOff) { highPassFilter.process(context); lowPassFilter.process(context); }
     if (chorusOnOff) { chorusModule.process(context); }
     
+    juce::dsp::AudioBlock<float> erBlock (buffer);
+    juce::dsp::ProcessContextReplacing<float> erContext (erBlock);
+    const auto& erInput = erContext.getInputBlock();
+    const auto& erOutput= erContext.getOutputBlock();
+    
+    earlyMixModule.pushDrySamples(erInput);
+    
+    if(earlyOnOff)
+    {// early reflections for loop for stereo placement// no need for channel outer for loop
+        
+        float localWidth = treeState.getRawParameterValue("width")->load();
+        const auto coef_M = 1/std::fmax(1 + localWidth, 2);
+        const auto coef_S = localWidth * coef_M;
+        
+        auto* leftData = erBlock.getChannelPointer(0);
+        auto* rightData = erBlock.getChannelPointer(1);
+
+        for(int sample = 0; sample < erBlock.getNumSamples(); ++sample)
+        {
+            float left = leftData[sample];
+            float right = rightData[sample];
+            
+            leftData[sample] = earlyA.processSample(left, 0 , earlyAGain) + earlyB.processSample(left, 0, earlyBGain) + earlyE.processSample(left, 0, earlyEGain) + earlyF.processSample(left, 0, earlyFGain);
+            rightData[sample] = earlyC.processSample(right, 1, earlyCGain) + earlyD.processSample(right, 1, earlyDGain) + earlyE.processSample(right, 1, earlyEGain) + earlyF.processSample(right, 1, earlyFGain);
+            leftData[sample] *= 0.5;
+            rightData[sample] *= 0.5;
+            
+            const auto mid = coef_M * (leftData[sample] + rightData[sample]);
+            const auto side = coef_S * (rightData[sample] - leftData[sample]);
+
+            leftData[sample] = mid - side;
+            rightData[sample] = mid + side;
+        }
+    }
+    earlyMixModule.mixWetSamples(erOutput);
+    
     if (reverbOnOff)
     {
-        juce::dsp::AudioBlock<float> erBlock (buffer);
-        juce::dsp::ProcessContextReplacing<float> erContext (erBlock);
-        const auto& erInput = erContext.getInputBlock();
-        const auto& erOutput= erContext.getOutputBlock();
-        
-        earlyMixModule.pushDrySamples(erInput);
-        
-        if(earlyOnOff)
-        {// early reflections for loop for stereo placement// no need for channel outer for loop
-            auto* leftData = erBlock.getChannelPointer(0);
-            auto* rightData = erBlock.getChannelPointer(1);
-
-            for(int sample = 0; sample < erBlock.getNumSamples(); ++sample)
-            {
-                float left = leftData[sample];
-                float right = rightData[sample];
-                leftData[sample] = earlyA.processSample(left, 0 , earlyAGain) + earlyB.processSample(left, 0, earlyBGain) + earlyE.processSample(left, 0, earlyEGain) + earlyF.processSample(left, 0, earlyFGain);
-                rightData[sample] = earlyC.processSample(right, 1, earlyCGain) + earlyD.processSample(right, 1, earlyDGain) + earlyE.processSample(right, 1, earlyEGain) + earlyF.processSample(right, 1, earlyFGain);
-                leftData[sample] *= 0.5;
-                rightData[sample] *= 0.5;
-            }
-        }
-        earlyMixModule.mixWetSamples(erOutput);
-        
         //Pre delay for loop
         for (int channel = 0; channel < block.getNumChannels(); ++channel)
         {
@@ -494,20 +506,19 @@ void COLOURAUMAudioProcessor::earlyTimesSelection(int selection)
 {
     switch (selection)
     {
-        case 0:
-            earlyAMS = 10.0;
-            earlyBMS = 25.0;
-            earlyCMS = 55.0;
-            earlyDMS = 76.0;
-            earlyEMS = 23.0;
-            earlyFMS = 90.0;
-            earlyAGain = 1.0;
-            earlyBGain = 1.0;
-            earlyCGain = 1.0;
-            earlyDGain = 1.0;
-            earlyEGain = 1.0;
-            earlyFGain = 1.0;
-            
+        case 0: // small room bright
+            earlyAMS = 3.0;
+            earlyBMS = 7.0;
+            earlyCMS = 5.0;
+            earlyDMS = 9.0;
+            earlyEMS = 22.0;
+            earlyFMS = 30.0;
+            earlyAGain = 0.9;
+            earlyBGain = 0.8;
+            earlyCGain = 0.9;
+            earlyDGain = 0.8;
+            earlyEGain = 0.6;
+            earlyFGain = 0.6;
         break;
             
         case 1:
@@ -517,12 +528,12 @@ void COLOURAUMAudioProcessor::earlyTimesSelection(int selection)
             earlyDMS = 33.0;
             earlyEMS = 50.0;
             earlyFMS = 55.0;
-            earlyAGain = 0.0;
-            earlyBGain = 0.0;
-            earlyCGain = 0.0;
-            earlyDGain = 0.0;
-            earlyEGain = 0.0;
-            earlyFGain = 0.0;
+            earlyAGain = 1.0;
+            earlyBGain = 1.0;
+            earlyCGain = 1.0;
+            earlyDGain = 1.0;
+            earlyEGain = 1.0;
+            earlyFGain = 1.0;
         break;
             
         case 2:
@@ -532,12 +543,12 @@ void COLOURAUMAudioProcessor::earlyTimesSelection(int selection)
             earlyDMS = 70.0;
             earlyEMS = 53.0;
             earlyFMS = 98.0;
-            earlyAGain = 0.5;
-            earlyBGain = 0.5;
-            earlyCGain = 0.5;
-            earlyDGain = 0.5;
-            earlyEGain = 0.5;
-            earlyFGain = 0.5;
+            earlyAGain = 1.0;
+            earlyBGain = 1.0;
+            earlyCGain = 1.0;
+            earlyDGain = 1.0;
+            earlyEGain = 1.0;
+            earlyFGain = 1.0;
         break;
             
         case 3:
@@ -547,6 +558,12 @@ void COLOURAUMAudioProcessor::earlyTimesSelection(int selection)
             earlyDMS = 82.0;
             earlyEMS = 23.0;
             earlyFMS = 90.0;
+            earlyAGain = 1.0;
+            earlyBGain = 1.0;
+            earlyCGain = 1.0;
+            earlyDGain = 1.0;
+            earlyEGain = 1.0;
+            earlyFGain = 1.0;
         break;
             
         default:
