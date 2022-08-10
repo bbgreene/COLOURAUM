@@ -506,65 +506,80 @@ void COLOURAUMAudioProcessor::earlyTimesSelection(int selection)
 {
     switch (selection)
     {
-        case 0: // small room bright
+        case 0: // small room
             earlyAMS = 3.0;
             earlyBMS = 7.0;
-            earlyCMS = 5.0;
-            earlyDMS = 9.0;
-            earlyEMS = 22.0;
-            earlyFMS = 30.0;
+            earlyCMS = 4.0;
+            earlyDMS = 10.0;
+            earlyEMS = 35.0;
+            earlyFMS = 55.0;
             earlyAGain = 0.9;
-            earlyBGain = 0.8;
+            earlyBGain = 0.9;
             earlyCGain = 0.9;
             earlyDGain = 0.8;
             earlyEGain = 0.6;
             earlyFGain = 0.6;
-        break;
+            break;
             
-        case 1:
+        case 1: // medium room
             earlyAMS = 7.0;
-            earlyBMS = 15.0;
+            earlyBMS = 16.0;
             earlyCMS = 23.0;
-            earlyDMS = 33.0;
+            earlyDMS = 35.0;
             earlyEMS = 50.0;
             earlyFMS = 55.0;
-            earlyAGain = 1.0;
-            earlyBGain = 1.0;
-            earlyCGain = 1.0;
-            earlyDGain = 1.0;
-            earlyEGain = 1.0;
-            earlyFGain = 1.0;
-        break;
+            earlyAGain = 0.9;
+            earlyBGain = 0.8;
+            earlyCGain = 0.9;
+            earlyDGain = 0.8;
+            earlyEGain = 0.7;
+            earlyFGain = 0.6;
+            break;
             
-        case 2:
+        case 2: // large room
+            earlyAMS = 12.0;
+            earlyBMS = 21.0;
+            earlyCMS = 30.0;
+            earlyDMS = 50.0;
+            earlyEMS = 65.0;
+            earlyFMS = 150.0;
+            earlyAGain = 0.9;
+            earlyBGain = 0.8;
+            earlyCGain = 0.9;
+            earlyDGain = 0.8;
+            earlyEGain = 0.7;
+            earlyFGain = 0.6;
+            break;
+            
+        case 3: // large Hall
             earlyAMS = 20.0;
-            earlyBMS = 41.0;
-            earlyCMS = 50.0;
-            earlyDMS = 70.0;
-            earlyEMS = 53.0;
-            earlyFMS = 98.0;
-            earlyAGain = 1.0;
-            earlyBGain = 1.0;
-            earlyCGain = 1.0;
-            earlyDGain = 1.0;
-            earlyEGain = 1.0;
-            earlyFGain = 1.0;
-        break;
+            earlyBMS = 53.0;
+            earlyCMS = 30.0;
+            earlyDMS = 69.0;
+            earlyEMS = 70.0;
+            earlyFMS = 180.0;
+            earlyAGain = 0.9;
+            earlyBGain = 0.6;
+            earlyCGain = 0.9;
+            earlyDGain = 0.6;
+            earlyEGain = 0.5;
+            earlyFGain = 0.4;
+            break;
             
-        case 3:
-            earlyAMS = 25.0;
-            earlyBMS = 35.0;
-            earlyCMS = 60.0;
-            earlyDMS = 82.0;
-            earlyEMS = 23.0;
-            earlyFMS = 90.0;
-            earlyAGain = 1.0;
-            earlyBGain = 1.0;
-            earlyCGain = 1.0;
-            earlyDGain = 1.0;
-            earlyEGain = 1.0;
-            earlyFGain = 1.0;
-        break;
+        case 4: // huge space
+            earlyAMS = 40.0;
+            earlyBMS = 60.0;
+            earlyCMS = 55.0;
+            earlyDMS = 85.0;
+            earlyEMS = 130.0;
+            earlyFMS = 280.0;
+            earlyAGain = 0.9;
+            earlyBGain = 0.8;
+            earlyCGain = 0.9;
+            earlyDGain = 0.8;
+            earlyEGain = 0.7;
+            earlyFGain = 0.6;
+            break;
             
         default:
             break;
