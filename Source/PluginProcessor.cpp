@@ -450,8 +450,8 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
             {
                 float left = leftData[sample];
                 float right = rightData[sample];
-                leftData[sample] = earlyA.processSample(left, 0 , 0.9) + earlyB.processSample(left, 0, 0.8) + earlyE.processSample(left, 0, 0.7) + earlyF.processSample(left, 0, 0.5);
-                rightData[sample] = earlyC.processSample(right, 1, 0.9) + earlyD.processSample(right, 1, 0.8) + earlyE.processSample(right, 1, 0.7) + earlyF.processSample(right, 1, 0.6);
+                leftData[sample] = earlyA.processSample(left, 0 , earlyAGain) + earlyB.processSample(left, 0, earlyBGain) + earlyE.processSample(left, 0, earlyEGain) + earlyF.processSample(left, 0, earlyFGain);
+                rightData[sample] = earlyC.processSample(right, 1, earlyCGain) + earlyD.processSample(right, 1, earlyDGain) + earlyE.processSample(right, 1, earlyEGain) + earlyF.processSample(right, 1, earlyFGain);
                 leftData[sample] *= 0.5;
                 rightData[sample] *= 0.5;
             }
@@ -480,39 +480,58 @@ void COLOURAUMAudioProcessor::earlyTimesSelection(int selection)
     switch (selection)
     {
         case 0:
-        earlyAMS = 10.0;
-        earlyBMS = 25.0;
-        earlyCMS = 55.0;
-        earlyDMS = 76.0;
-        earlyEMS = 23.0;
-        earlyFMS = 90.0;
+            earlyAMS = 10.0;
+            earlyBMS = 25.0;
+            earlyCMS = 55.0;
+            earlyDMS = 76.0;
+            earlyEMS = 23.0;
+            earlyFMS = 90.0;
+            earlyAGain = 1.0;
+            earlyBGain = 1.0;
+            earlyCGain = 1.0;
+            earlyDGain = 1.0;
+            earlyEGain = 1.0;
+            earlyFGain = 1.0;
+            
         break;
             
         case 1:
-        earlyAMS = 7.0;
-        earlyBMS = 15.0;
-        earlyCMS = 23.0;
-        earlyDMS = 33.0;
-        earlyEMS = 50.0;
-        earlyFMS = 55.0;
+            earlyAMS = 7.0;
+            earlyBMS = 15.0;
+            earlyCMS = 23.0;
+            earlyDMS = 33.0;
+            earlyEMS = 50.0;
+            earlyFMS = 55.0;
+            earlyAGain = 0.0;
+            earlyBGain = 0.0;
+            earlyCGain = 0.0;
+            earlyDGain = 0.0;
+            earlyEGain = 0.0;
+            earlyFGain = 0.0;
         break;
             
         case 2:
-        earlyAMS = 20.0;
-        earlyBMS = 41.0;
-        earlyCMS = 50.0;
-        earlyDMS = 70.0;
-        earlyEMS = 53.0;
-        earlyFMS = 98.0;
+            earlyAMS = 20.0;
+            earlyBMS = 41.0;
+            earlyCMS = 50.0;
+            earlyDMS = 70.0;
+            earlyEMS = 53.0;
+            earlyFMS = 98.0;
+            earlyAGain = 0.5;
+            earlyBGain = 0.5;
+            earlyCGain = 0.5;
+            earlyDGain = 0.5;
+            earlyEGain = 0.5;
+            earlyFGain = 0.5;
         break;
             
         case 3:
-        earlyAMS = 25.0;
-        earlyBMS = 35.0;
-        earlyCMS = 60.0;
-        earlyDMS = 82.0;
-        earlyEMS = 23.0;
-        earlyFMS = 90.0;
+            earlyAMS = 25.0;
+            earlyBMS = 35.0;
+            earlyCMS = 60.0;
+            earlyDMS = 82.0;
+            earlyEMS = 23.0;
+            earlyFMS = 90.0;
         break;
             
         default:

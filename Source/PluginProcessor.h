@@ -74,11 +74,17 @@ private:
     int erSelection { 0 };
     void earlyTimesSelection(int selection);
     float earlyAMS = 10.0;
+    float earlyAGain;
     float earlyBMS = 25.0;
+    float earlyBGain;
     float earlyCMS = 55.0;
+    float earlyCGain;
     float earlyDMS = 76.0;
+    float earlyDGain;
     float earlyEMS = 23.0;
+    float earlyEGain;
     float earlyFMS = 90.0;
+    float earlyFGain;
     
     //Predelay object and params
     FractionalDelay predelay;
