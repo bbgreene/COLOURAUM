@@ -71,6 +71,7 @@ private:
     //Early Reflections
     bool earlyOnOff { false };
     FractionalDelay earlyA, earlyB, earlyC, earlyD , earlyE, earlyF;
+    juce::dsp::DryWetMixer<float> earlyMixModule;
     int erSelection { 0 };
     void earlyTimesSelection(int selection);
     float earlyAMS = 10.0;
