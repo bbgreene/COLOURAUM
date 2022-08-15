@@ -172,7 +172,9 @@ void COLOURAUMAudioProcessor::parameterChanged(const juce::String &parameterID, 
     updateParams();
     
     predelayMS.setTargetValue(treeState.getRawParameterValue("predelay")->load());
-    depthOne.setTargetValue(treeState.getRawParameterValue("lfo one depth")->load());
+    myDepthOnePercentage = treeState.getRawParameterValue("lfo one depth")->load(); //getting 0 - 100 from dial
+    myDepthOne = juce::jmap(myDepthOnePercentage, 0.0f, 100.0f, 0.0f, 1.0f); // converting to 0 - 1
+    depthOne.setTargetValue(myDepthOne);
     freqOne.setTargetValue(treeState.getRawParameterValue("lfo one rate")->load());
     if(parameterID == "wave")
     {
