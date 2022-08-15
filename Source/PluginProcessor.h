@@ -64,6 +64,14 @@ private:
     juce::dsp::LinkwitzRileyFilter<float> highPassFilter;
     juce::dsp::LinkwitzRileyFilter<float> lowPassFilter;
     
+    //LFO Variables & functions
+    juce::LinearSmoothedValue<float> depthOne { 0.0 };
+    juce::LinearSmoothedValue<float> freqOne { 0.0 };
+    juce::LinearSmoothedValue<float> lfoOnePhase { 0.0 };
+    float lfoOne(float phase, int choice);
+    float inverseSampleRate; // for LFO phase update
+    int waveform  { 0 };
+    
     // chorus object
     juce::dsp::Chorus<float> chorusModule;
     bool chorusOnOff { false };

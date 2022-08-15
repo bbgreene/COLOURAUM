@@ -25,12 +25,11 @@ COLOURAUMAudioProcessor::COLOURAUMAudioProcessor()
     treeState.addParameterListener("filters", this);
     treeState.addParameterListener("hiPass", this);
     treeState.addParameterListener("loPass", this);
-    treeState.addParameterListener("chorus", this);
-    treeState.addParameterListener("rate", this);
-    treeState.addParameterListener("depth", this);
-    treeState.addParameterListener("delay", this);
-    treeState.addParameterListener("feedback", this);
-    treeState.addParameterListener("chorusMix", this);
+    
+    treeState.addParameterListener("wave", this);
+    treeState.addParameterListener("lfo one depth", this);
+    treeState.addParameterListener("lfo one rate", this);
+
     treeState.addParameterListener("reverb", this);
     treeState.addParameterListener("er", this);
     treeState.addParameterListener("er type", this);
@@ -56,12 +55,11 @@ COLOURAUMAudioProcessor::~COLOURAUMAudioProcessor()
     treeState.removeParameterListener("filters", this);
     treeState.removeParameterListener("hiPass", this);
     treeState.removeParameterListener("loPass", this);
-    treeState.removeParameterListener("chorus", this);
-    treeState.removeParameterListener("rate", this);
-    treeState.removeParameterListener("depth", this);
-    treeState.removeParameterListener("delay", this);
-    treeState.removeParameterListener("feedback", this);
-    treeState.removeParameterListener("chorusMix", this);
+    
+    treeState.removeParameterListener("wave", this);
+    treeState.removeParameterListener("lfo one depth", this);
+    treeState.removeParameterListener("lfo one rate", this);
+
     treeState.removeParameterListener("reverb", this);
     treeState.removeParameterListener("er", this);
     treeState.removeParameterListener("er type", this);
@@ -86,16 +84,31 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
 {
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
     
+    //LFO One waveform names
+    juce::StringArray waveformSelector = {"Sine", "Triangle", "Sloped Square", "Ring"};
+    
     auto pFiltersOnOff = std::make_unique<juce::AudioParameterBool> ("filters", "Filters", false);
     auto pHighPassFreq = std::make_unique<juce::AudioParameterFloat> ("hiPass", "HiPass", 20.0, 2000.0, 20.0);
     auto pLowPassFreq = std::make_unique<juce::AudioParameterFloat> ("loPass", "LoPass", 5000.0, 20000.0, 20000.0);
     
-    auto pChorusOnOff = std::make_unique<juce::AudioParameterBool> ("chorus", "Chorus", false);
-    auto pRate = std::make_unique<juce::AudioParameterFloat>("rate", "Rate", juce::NormalisableRange<float>(0.0, 50.0, 0.1, 0.4), 0.7);
-    auto pDepth = std::make_unique<juce::AudioParameterFloat>("depth", "Depth", 0.0, 1.0, 0.5);
-    auto pDelay = std::make_unique<juce::AudioParameterFloat>("delay", "Delay", 0.0, 50.0, 9.0);
-    auto pFeedback = std::make_unique<juce::AudioParameterFloat>("feedback", "Feedback", -1, 1.0, 0.3);
-    auto pChorusMix = std::make_unique<juce::AudioParameterFloat>("chorusMix", "ChorusMix", 0, 1.0, 0.7);
+    auto pWaveform = std::make_unique<juce::AudioParameterChoice>("wave", "Wave", waveformSelector, 0);
+    auto pDepthOne = std::make_unique<juce::AudioParameterFloat>("lfo one depth",
+                                                                     "LFO 1 Depth",
+                                                                     juce::NormalisableRange<float>(0.00, 100.0, 0.1, 1.0),
+                                                                     0.0,
+                                                                     juce::String(),
+                                                                     juce::AudioProcessorParameter::genericParameter,
+                                                                     [](float value, int) {return (value < 100.0f) ? juce::String (value, 1) + " %" : juce::String (value, 0) + " %";},
+                                                                     [](juce::String text) {return text.dropLastCharacters (3).getFloatValue();});
+        
+    auto pFreqOne = std::make_unique<juce::AudioParameterFloat>("lfo one rate",
+                                                                    "LFO 1 Rate",
+                                                                    juce::NormalisableRange<float>(0.01, 100.0, 0.01, 0.4),
+                                                                    0.01,
+                                                                    juce::String(),
+                                                                    juce::AudioProcessorParameter::genericParameter,
+                                                                    [](float value, int) {return (value < 10.0f) ? juce::String (value, 2) + " Hz" : ((value == 100.0f) ? juce::String (value, 0) + " Hz" : juce::String (value, 1) + " Hz" );},
+                                                                    [](juce::String text) {return text.dropLastCharacters (3).getFloatValue();});
     
     auto pReverbOnOff = std::make_unique<juce::AudioParameterBool> ("reverb", "Reverb", true);
     auto pEarlyOnOff = std::make_unique<juce::AudioParameterBool> ("er", "ER", true);
@@ -121,12 +134,11 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     params.push_back(std::move(pFiltersOnOff));
     params.push_back(std::move(pHighPassFreq));
     params.push_back(std::move(pLowPassFreq));
-    params.push_back(std::move(pChorusOnOff));
-    params.push_back(std::move(pRate));
-    params.push_back(std::move(pDepth));
-    params.push_back(std::move(pDelay));
-    params.push_back(std::move(pFeedback));
-    params.push_back(std::move(pChorusMix));
+    
+    params.push_back(std::move(pWaveform));
+    params.push_back(std::move(pDepthOne));
+    params.push_back(std::move(pFreqOne));
+
     params.push_back(std::move(pReverbOnOff));
     params.push_back(std::move(pEarlyOnOff));
     params.push_back(std::move(pEarlySelection));
@@ -156,13 +168,13 @@ void COLOURAUMAudioProcessor::parameterChanged(const juce::String &parameterID, 
     highPassFilter.setCutoffFrequency(treeState.getRawParameterValue("hiPass")->load());
     lowPassFilter.setCutoffFrequency(treeState.getRawParameterValue("loPass")->load());
     
-    // chorus params
-    chorusOnOff = treeState.getRawParameterValue("chorus")->load();
-    chorusModule.setRate(treeState.getRawParameterValue("rate")->load());
-    chorusModule.setDepth(treeState.getRawParameterValue("depth")->load());
-    chorusModule.setCentreDelay(treeState.getRawParameterValue("delay")->load());
-    chorusModule.setFeedback(treeState.getRawParameterValue("feedback")->load());
-    chorusModule.setMix(treeState.getRawParameterValue("chorusMix")->load());
+    // Tremolo params
+    depthOne.setTargetValue(treeState.getRawParameterValue("lfo one depth")->load());
+    freqOne.setTargetValue(treeState.getRawParameterValue("lfo one rate")->load());
+    if(parameterID == "wave")
+    {
+        waveform = newValue;
+    }
     
     //reverb params
     reverbOnOff = treeState.getRawParameterValue("reverb")->load();
@@ -277,14 +289,13 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     lowPassFilter.setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
     lowPassFilter.setCutoffFrequency(treeState.getRawParameterValue("loPass")->load());
     
-    // chorus params and prep
-    chorusOnOff = treeState.getRawParameterValue("chorus")->load();
-    chorusModule.prepare(spec);
-    chorusModule.setRate(treeState.getRawParameterValue("rate")->load());
-    chorusModule.setDepth(treeState.getRawParameterValue("depth")->load());
-    chorusModule.setCentreDelay(treeState.getRawParameterValue("delay")->load());
-    chorusModule.setFeedback(treeState.getRawParameterValue("feedback")->load());
-    chorusModule.setMix(treeState.getRawParameterValue("chorusMix")->load());
+    // tremolo params and prep
+    depthOne.reset(sampleRate, 0.001);
+    freqOne.reset(sampleRate, 0.001);
+    lfoOnePhase.reset(sampleRate, 0.001);
+    lfoOnePhase = 0.0;
+    inverseSampleRate = 1.0 / sampleRate;
+    waveform = treeState.getRawParameterValue("wave")->load();
     
     // for fractional delays
     Fs = sampleRate;
@@ -444,7 +455,7 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     mixModule.pushDrySamples(input);
     
     if (filtersOnOff) { highPassFilter.process(context); lowPassFilter.process(context); }
-    if (chorusOnOff) { chorusModule.process(context); }
+//    if (chorusOnOff) { chorusModule.process(context); }
     
     juce::dsp::AudioBlock<float> erBlock (buffer);
     juce::dsp::ProcessContextReplacing<float> erContext (erBlock);
@@ -482,23 +493,56 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     }
     earlyMixModule.mixWetSamples(erOutput);
     
+    //Pre delay for loop
+    for (int channel = 0; channel < block.getNumChannels(); ++channel)
+    {
+        auto* channelData = block.getChannelPointer(channel);
+
+        for(int sample = 0; sample < block.getNumSamples(); ++sample)
+        {
+            float x = channelData[sample];
+            channelData[sample] = predelay.processSample(x, channel, 1.0);
+        }
+    }
+    
     if (reverbOnOff)
     {
-        //Pre delay for loop
-        for (int channel = 0; channel < block.getNumChannels(); ++channel)
-        {
-            auto* channelData = block.getChannelPointer(channel);
-
-            for(int sample = 0; sample < block.getNumSamples(); ++sample)
-            {
-                float x = channelData[sample];
-                channelData[sample] = predelay.processSample(x, channel, 1.0);
-            }
-        }
+        
         reverbModule.process(context);
     }
     if (gateOnOff) { gateModule.process(context); }
+    
+    //LFO One parameters
+    float myDepthOnePercentage = *treeState.getRawParameterValue("lfo one depth"); //getting 0 - 100 from dial
+    float myDepthOne = juce::jmap(myDepthOnePercentage, 0.0f, 100.0f, 0.0f, 1.0f); // converting to 0 - 1
+    depthOne.setTargetValue(myDepthOne);
+    float myFreqOne = *treeState.getRawParameterValue("lfo one rate");
+    freqOne.setTargetValue(myFreqOne);
 
+    float currentDepthOne = depthOne.getNextValue();
+    float currentFrequencyOne = freqOne.getNextValue();
+    float phaseOne = lfoOnePhase.getNextValue();
+    //Processing Tremolo
+    for (int channel = 0; channel < totalNumInputChannels; ++channel)
+    {
+        auto* channelData = buffer.getWritePointer(channel);
+        phaseOne = lfoOnePhase.getNextValue();
+
+        for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
+        {
+            const float in = channelData[sample];
+            // Tremolo
+            float out = in * (1 - currentDepthOne + currentDepthOne * lfoOne(phaseOne, waveform));
+            channelData[sample] = out;
+
+            // Update the carrier and LFO One phases, keeping them in the range 0-1.
+            phaseOne += currentFrequencyOne * inverseSampleRate;
+            if (phaseOne >= 1.0)
+            phaseOne -= 1.0;
+        }
+    }
+    lfoOnePhase = phaseOne;
+    
     mixModule.mixWetSamples(output);
 }
 
@@ -582,6 +626,44 @@ void COLOURAUMAudioProcessor::earlyTimesSelection(int selection)
             break;
             
         default:
+            break;
+    }
+}
+
+//LFO one (main tremolo LFO) waveform selection
+float COLOURAUMAudioProcessor::lfoOne(float phase, int choice)
+{
+    switch (choice) {
+        case 0:
+            // sine wave
+            return 0.5 + 0.5 * sinf(2.0 * M_PI * phase);
+            break;
+        case 1:
+            // Triangle
+            if(phase < 0.25f)
+                return 0.5f + 2.0f*phase;
+            else if(phase < 0.75f)
+                return 1.0f - 2.0f*(phase - 0.25f);
+            else
+                return 2.0f*(phase-0.75f);
+            break;
+        case 2:
+            // Square with sloped edges
+            if(phase < 0.48f)
+                return 1.0f;
+            else if(phase < 0.5f)
+                return 1.0f - 50.0f*(phase - 0.48f);
+            else if(phase < 0.98f)
+                return 0.0f;
+            else
+                return 50.0f*(phase - 0.98f);
+        case 3:
+            // ring mod
+            return sinf(2.0 * M_PI * phase);
+            break;
+            
+        default:
+            return 0.5f + 0.5f * sinf(2.0 * M_PI * phase);
             break;
     }
 }
