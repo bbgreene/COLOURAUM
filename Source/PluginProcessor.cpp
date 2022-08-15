@@ -303,6 +303,7 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     //Early Reflections
     erSelection = treeState.getRawParameterValue("er type")->load();
     earlyTimesSelection(static_cast<int>(erSelection));
+    earlyReflectionsPrep();
     earlyMixModule.prepare(spec);
     earlyMixModule.setWetMixProportion(treeState.getRawParameterValue("er mix")->load());
     earlyA.setFs(sampleRate);
@@ -394,7 +395,40 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
     
-    //ERs
+    //Predelay
+    predelay.setDepth(0.0);
+    predelay.setSpeed(0.0);
+    //move this outside of process block?
+    float predelaySec = predelayMS.getNextValue() * 0.001;
+    float predelaySamples = predelaySec * Fs;
+    predelay.setDelaySamples(predelaySamples);
+    
+    reverbParams.roomSize = treeState.getRawParameterValue("size")->load();
+    reverbParams.damping = treeState.getRawParameterValue("damp")->load();
+    reverbParams.width = treeState.getRawParameterValue("width")->load();
+    reverbParams.wetLevel = treeState.getRawParameterValue("blend")->load();
+    reverbParams.freezeMode = treeState.getRawParameterValue("freeze")->load();
+    reverbModule.setParameters(reverbParams);
+    
+    juce::dsp::AudioBlock<float> block (buffer);
+    juce::dsp::ProcessContextReplacing<float> context (block);
+    const auto& input = context.getInputBlock();
+    const auto& output = context.getOutputBlock();
+    mixModule.pushDrySamples(input);
+    
+    if (filtersOnOff) { highPassFilter.process(context); lowPassFilter.process(context); }
+    preDelayProcesing(block);
+    if(earlyOnOff){ earlyReflectionsProcessing(buffer); }
+    if (reverbOnOff) { reverbModule.process(context); }
+    if (gateOnOff) { gateModule.process(context); }
+    tremoloProcessing(buffer);
+
+    mixModule.mixWetSamples(output);
+}
+
+void COLOURAUMAudioProcessor::earlyReflectionsPrep()
+{
+    //ER prep
     earlyA.setDepth(erDepth);
     earlyA.setSpeed(erSpeed);
     float earlyASec = earlyAMS * 0.001;
@@ -430,69 +464,11 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     float earlyFSec = earlyFMS * 0.001;
     float earlyFSamples = earlyFSec * Fs;
     earlyF.setDelaySamples(earlyFSamples);
-    //move this outside of process block?
-        
-    //Predelay
-    predelay.setDepth(0.0);
-    predelay.setSpeed(0.0);
-    //move this outside of process block?
-    float predelaySec = predelayMS.getNextValue() * 0.001;
-    float predelaySamples = predelaySec * Fs;
-    predelay.setDelaySamples(predelaySamples);
     
-    reverbParams.roomSize = treeState.getRawParameterValue("size")->load();
-    reverbParams.damping = treeState.getRawParameterValue("damp")->load();
-    reverbParams.width = treeState.getRawParameterValue("width")->load();
-    reverbParams.wetLevel = treeState.getRawParameterValue("blend")->load();
-    reverbParams.freezeMode = treeState.getRawParameterValue("freeze")->load();
-    reverbModule.setParameters(reverbParams);
-    
-    juce::dsp::AudioBlock<float> block (buffer);
-    juce::dsp::ProcessContextReplacing<float> context (block);
-    const auto& input = context.getInputBlock();
-    const auto& output = context.getOutputBlock();
-    
-    mixModule.pushDrySamples(input);
-    
-    if (filtersOnOff) { highPassFilter.process(context); lowPassFilter.process(context); }
-    
-    juce::dsp::AudioBlock<float> erBlock (buffer);
-    juce::dsp::ProcessContextReplacing<float> erContext (erBlock);
-    const auto& erInput = erContext.getInputBlock();
-    const auto& erOutput= erContext.getOutputBlock();
-    
-    earlyMixModule.pushDrySamples(erInput);
-    
-    if(earlyOnOff)
-    {// early reflections for loop for stereo placement// no need for channel outer for loop
-        
-        float localWidth = treeState.getRawParameterValue("width")->load();
-        const auto coef_M = 1/std::fmax(1 + localWidth, 2);
-        const auto coef_S = localWidth * coef_M;
-        
-        auto* leftData = erBlock.getChannelPointer(0);
-        auto* rightData = erBlock.getChannelPointer(1);
+}
 
-        for(int sample = 0; sample < erBlock.getNumSamples(); ++sample)
-        {
-            float left = leftData[sample];
-            float right = rightData[sample];
-            
-            leftData[sample] = earlyA.processSample(left, 0 , earlyAGain) + earlyB.processSample(left, 0, earlyBGain) + earlyE.processSample(left, 0, earlyEGain) + earlyF.processSample(left, 0, earlyFGain);
-            rightData[sample] = earlyC.processSample(right, 1, earlyCGain) + earlyD.processSample(right, 1, earlyDGain) + earlyE.processSample(right, 1, earlyEGain) + earlyF.processSample(right, 1, earlyFGain);
-            leftData[sample] *= 0.5;
-            rightData[sample] *= 0.5;
-            
-            const auto mid = coef_M * (leftData[sample] + rightData[sample]);
-            const auto side = coef_S * (rightData[sample] - leftData[sample]);
-
-            leftData[sample] = mid - side;
-            rightData[sample] = mid + side;
-        }
-    }
-    earlyMixModule.mixWetSamples(erOutput);
-    
-    //Pre delay for loop
+void COLOURAUMAudioProcessor::preDelayProcesing(juce::dsp::AudioBlock<float>& block)
+{
     for (int channel = 0; channel < block.getNumChannels(); ++channel)
     {
         auto* channelData = block.getChannelPointer(channel);
@@ -503,17 +479,6 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
             channelData[sample] = predelay.processSample(x, channel, 1.0);
         }
     }
-    
-    if (reverbOnOff)
-    {
-        reverbModule.process(context);
-    }
-    if (gateOnOff) { gateModule.process(context); }
-    
-    //Processing Tremolo
-    tremoloProcessing(buffer);
-
-    mixModule.mixWetSamples(output);
 }
 
 void COLOURAUMAudioProcessor::earlyTimesSelection(int selection)
@@ -598,6 +563,43 @@ void COLOURAUMAudioProcessor::earlyTimesSelection(int selection)
         default:
             break;
     }
+}
+
+void COLOURAUMAudioProcessor::earlyReflectionsProcessing(juce::AudioBuffer<float> &buffer)
+{
+    juce::dsp::AudioBlock<float> erBlock (buffer);
+    juce::dsp::ProcessContextReplacing<float> erContext (erBlock);
+    const auto& erInput = erContext.getInputBlock();
+    const auto& erOutput= erContext.getOutputBlock();
+    
+    earlyMixModule.pushDrySamples(erInput);
+    
+    earlyReflectionsPrep();
+    // early reflections for loop for stereo placement// no need for channel outer for loop
+    float localWidth = treeState.getRawParameterValue("width")->load();
+    const auto coef_M = 1/std::fmax(1 + localWidth, 2);
+    const auto coef_S = localWidth * coef_M;
+    
+    auto* leftData = erBlock.getChannelPointer(0);
+    auto* rightData = erBlock.getChannelPointer(1);
+
+    for(int sample = 0; sample < erBlock.getNumSamples(); ++sample)
+    {
+        float left = leftData[sample];
+        float right = rightData[sample];
+        
+        leftData[sample] = earlyA.processSample(left, 0 , earlyAGain) + earlyB.processSample(left, 0, earlyBGain) + earlyE.processSample(left, 0, earlyEGain) + earlyF.processSample(left, 0, earlyFGain);
+        rightData[sample] = earlyC.processSample(right, 1, earlyCGain) + earlyD.processSample(right, 1, earlyDGain) + earlyE.processSample(right, 1, earlyEGain) + earlyF.processSample(right, 1, earlyFGain);
+        leftData[sample] *= 0.5;
+        rightData[sample] *= 0.5;
+        
+        const auto mid = coef_M * (leftData[sample] + rightData[sample]);
+        const auto side = coef_S * (rightData[sample] - leftData[sample]);
+
+        leftData[sample] = mid - side;
+        rightData[sample] = mid + side;
+    }
+    earlyMixModule.mixWetSamples(erOutput);
 }
 
 //LFO one (main tremolo LFO) waveform selection

@@ -95,14 +95,17 @@ private:
     float earlyEGain;
     float earlyFMS = 90.0;
     float earlyFGain;
+    void earlyReflectionsProcessing(juce::AudioBuffer<float>& buffer);
     
     //Predelay object and params
     FractionalDelay predelay;
     juce::LinearSmoothedValue<float> predelayMS { 0.0 };
-//    float predelayMS = 0.0;
+    void preDelayProcesing(juce::dsp::AudioBlock<float>& block);
+
     float Fs = 44100.0;
     float erSpeed = 0.0;
     float erDepth = 0.0;
+    void earlyReflectionsPrep();
     
     //reverb and params
     bool reverbOnOff { true };
