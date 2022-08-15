@@ -58,7 +58,7 @@ public:
     */
     void setParameters (const Parameters& newParams)
     {
-        const float wetScaleFactor = 3.0f;
+        const float wetScaleFactor = 0.4f; // overall verb gain
         const float dryScaleFactor = 2.0f;
 
         const float wet = newParams.wetLevel * wetScaleFactor;
@@ -91,9 +91,9 @@ public:
 //        static const short combTunings[] = { 838, 1015, 1279, 1368, 1632, 1809, 1897, 2073 }; // 19, 23, 29, 31, 37, 41, 43, 47 ms prime numbers
 //        static const short allPassTunings[] = { 556, 441, 341, 225 };
         
-        // Original minus 50 each
-        static const short combTunings[] = { 1066, 1138, 1227, 1306, 1372, 1441, 1507, 1567 }; // (at 44100Hz)
-        static const short allPassTunings[] = { 506, 391, 291, 175 };
+        // Original minus 50 each...including 10 combs and 6 all pass
+        static const short combTunings[] = { 1066, 1138, 1227, 1306, 1372, 1441, 1507, 1567, 1600, 1620 }; // (at 44100Hz)
+        static const short allPassTunings[] = { 506, 391, 291, 175, 125, 101 };
         
         
         const int stereoSpread = 23;
@@ -301,7 +301,7 @@ private:
     };
 
     //==============================================================================
-    enum { numCombs = 8, numAllPasses = 4, numChannels = 2 };
+    enum { numCombs = 10, numAllPasses = 6, numChannels = 2 };
 
     Parameters parameters;
     float gain;
