@@ -70,6 +70,7 @@ private:
     juce::LinearSmoothedValue<float> lfoOnePhase { 0.0 };
     float inverseSampleRate; // for LFO phase update
     int waveform  { 0 };
+    bool tremOnOff { true };
     bool tremPrePost { true };
     void tremoloProcessing(juce::AudioBuffer<float>& buffer);
     float lfoOne(float phase, int choice);

@@ -25,12 +25,6 @@ COLOURAUMAudioProcessor::COLOURAUMAudioProcessor()
     treeState.addParameterListener("filters", this);
     treeState.addParameterListener("hiPass", this);
     treeState.addParameterListener("loPass", this);
-    
-    treeState.addParameterListener("tremPrePost", this);
-    treeState.addParameterListener("wave", this);
-    treeState.addParameterListener("lfo one depth", this);
-    treeState.addParameterListener("lfo one rate", this);
-
     treeState.addParameterListener("reverb", this);
     treeState.addParameterListener("er", this);
     treeState.addParameterListener("er type", this);
@@ -48,6 +42,11 @@ COLOURAUMAudioProcessor::COLOURAUMAudioProcessor()
     treeState.addParameterListener("ratio", this);
     treeState.addParameterListener("attack", this);
     treeState.addParameterListener("release", this);
+    treeState.addParameterListener("tremolo", this);
+    treeState.addParameterListener("tremPrePost", this);
+    treeState.addParameterListener("wave", this);
+    treeState.addParameterListener("lfo one depth", this);
+    treeState.addParameterListener("lfo one rate", this);
     treeState.addParameterListener("main mix", this);
 }
 
@@ -56,12 +55,6 @@ COLOURAUMAudioProcessor::~COLOURAUMAudioProcessor()
     treeState.removeParameterListener("filters", this);
     treeState.removeParameterListener("hiPass", this);
     treeState.removeParameterListener("loPass", this);
-    
-    treeState.removeParameterListener("tremPrePost", this);
-    treeState.removeParameterListener("wave", this);
-    treeState.removeParameterListener("lfo one depth", this);
-    treeState.removeParameterListener("lfo one rate", this);
-
     treeState.removeParameterListener("reverb", this);
     treeState.removeParameterListener("er", this);
     treeState.removeParameterListener("er type", this);
@@ -79,6 +72,11 @@ COLOURAUMAudioProcessor::~COLOURAUMAudioProcessor()
     treeState.removeParameterListener("ratio", this);
     treeState.removeParameterListener("attack", this);
     treeState.removeParameterListener("release", this);
+    treeState.removeParameterListener("tremolo", this);
+    treeState.removeParameterListener("tremPrePost", this);
+    treeState.removeParameterListener("wave", this);
+    treeState.removeParameterListener("lfo one depth", this);
+    treeState.removeParameterListener("lfo one rate", this);
     treeState.removeParameterListener("main mix", this);
 }
 
@@ -92,26 +90,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     auto pFiltersOnOff = std::make_unique<juce::AudioParameterBool> ("filters", "Filters", false);
     auto pHighPassFreq = std::make_unique<juce::AudioParameterFloat> ("hiPass", "HiPass", 20.0, 2000.0, 20.0);
     auto pLowPassFreq = std::make_unique<juce::AudioParameterFloat> ("loPass", "LoPass", 5000.0, 20000.0, 20000.0);
-    
-    auto pTremPrePost = std::make_unique<juce::AudioParameterBool>("tremPrePost", "TremPrePost", true);
-    auto pWaveform = std::make_unique<juce::AudioParameterChoice>("wave", "Wave", waveformSelector, 0);
-    auto pDepthOne = std::make_unique<juce::AudioParameterFloat>("lfo one depth",
-                                                                     "LFO 1 Depth",
-                                                                     juce::NormalisableRange<float>(0.00, 100.0, 0.1, 1.0),
-                                                                     0.0,
-                                                                     juce::String(),
-                                                                     juce::AudioProcessorParameter::genericParameter,
-                                                                     [](float value, int) {return (value < 100.0f) ? juce::String (value, 1) + " %" : juce::String (value, 0) + " %";},
-                                                                     [](juce::String text) {return text.dropLastCharacters (3).getFloatValue();});
-        
-    auto pFreqOne = std::make_unique<juce::AudioParameterFloat>("lfo one rate",
-                                                                    "LFO 1 Rate",
-                                                                    juce::NormalisableRange<float>(0.01, 100.0, 0.01, 0.4),
-                                                                    0.01,
-                                                                    juce::String(),
-                                                                    juce::AudioProcessorParameter::genericParameter,
-                                                                    [](float value, int) {return (value < 10.0f) ? juce::String (value, 2) + " Hz" : ((value == 100.0f) ? juce::String (value, 0) + " Hz" : juce::String (value, 1) + " Hz" );},
-                                                                    [](juce::String text) {return text.dropLastCharacters (3).getFloatValue();});
     
     auto pReverbOnOff = std::make_unique<juce::AudioParameterBool> ("reverb", "Reverb", true);
     auto pEarlyOnOff = std::make_unique<juce::AudioParameterBool> ("er", "ER", true);
@@ -132,17 +110,33 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     auto pAtt = std::make_unique<juce::AudioParameterFloat> ("attack", "Attack", 1.0, 1000.0, 1.0);
     auto pRel = std::make_unique<juce::AudioParameterFloat> ("release", "Release", 1.0, 3000.0, 1.0);
     
+    auto pTremOnOff = std::make_unique<juce::AudioParameterBool>("tremolo", "Tremolo", true);
+    auto pTremPrePost = std::make_unique<juce::AudioParameterBool>("tremPrePost", "TremPrePost", true);
+    auto pWaveform = std::make_unique<juce::AudioParameterChoice>("wave", "Wave", waveformSelector, 0);
+    auto pDepthOne = std::make_unique<juce::AudioParameterFloat>("lfo one depth",
+                                                                     "LFO 1 Depth",
+                                                                     juce::NormalisableRange<float>(0.00, 100.0, 0.1, 1.0),
+                                                                     0.0,
+                                                                     juce::String(),
+                                                                     juce::AudioProcessorParameter::genericParameter,
+                                                                     [](float value, int) {return (value < 100.0f) ? juce::String (value, 1) + " %" : juce::String (value, 0) + " %";},
+                                                                     [](juce::String text) {return text.dropLastCharacters (3).getFloatValue();});
+        
+    auto pFreqOne = std::make_unique<juce::AudioParameterFloat>("lfo one rate",
+                                                                    "LFO 1 Rate",
+                                                                    juce::NormalisableRange<float>(0.01, 100.0, 0.01, 0.4),
+                                                                    0.01,
+                                                                    juce::String(),
+                                                                    juce::AudioProcessorParameter::genericParameter,
+                                                                    [](float value, int) {return (value < 10.0f) ? juce::String (value, 2) + " Hz" : ((value == 100.0f) ? juce::String (value, 0) + " Hz" : juce::String (value, 1) + " Hz" );},
+                                                                    [](juce::String text) {return text.dropLastCharacters (3).getFloatValue();});
+    
     auto pMix = std::make_unique<juce::AudioParameterFloat> ("main mix", "Main Mix", 0.0, 1.0, 1.0); // overall mix
     
     params.push_back(std::move(pFiltersOnOff));
     params.push_back(std::move(pHighPassFreq));
     params.push_back(std::move(pLowPassFreq));
     
-    params.push_back(std::move(pTremPrePost));
-    params.push_back(std::move(pWaveform));
-    params.push_back(std::move(pDepthOne));
-    params.push_back(std::move(pFreqOne));
-
     params.push_back(std::move(pReverbOnOff));
     params.push_back(std::move(pEarlyOnOff));
     params.push_back(std::move(pEarlySelection));
@@ -163,6 +157,12 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     params.push_back(std::move(pAtt));
     params.push_back(std::move(pRel));
     params.push_back(std::move(pMix));
+    
+    params.push_back(std::move(pTremOnOff));
+    params.push_back(std::move(pTremPrePost));
+    params.push_back(std::move(pWaveform));
+    params.push_back(std::move(pDepthOne));
+    params.push_back(std::move(pFreqOne));
     
     return { params.begin(), params.end() };
 }
@@ -358,11 +358,11 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
         if(earlyOnOff){ earlyReflectionsProcessing(buffer); }
         if (reverbOnOff) { reverbModule.process(context); }
         if (gateOnOff) { gateModule.process(context); }
-        tremoloProcessing(buffer);
+        if(tremOnOff) { tremoloProcessing(buffer); }
     }
     else
     {
-        tremoloProcessing(buffer);
+        if(tremOnOff) { tremoloProcessing(buffer); }
         preDelayProcesing(block);
         if(earlyOnOff){ earlyReflectionsProcessing(buffer); }
         if (reverbOnOff) { reverbModule.process(context); }
@@ -650,9 +650,6 @@ void COLOURAUMAudioProcessor::updateParams()
     lowPassFilter.setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
     lowPassFilter.setCutoffFrequency(treeState.getRawParameterValue("loPass")->load());
     
-    //tremolo pre post
-    tremPrePost = treeState.getRawParameterValue("tremPrePost")->load();
-    
     // ERs
     earlyOnOff = treeState.getRawParameterValue("er")->load();
     earlyMixModule.setWetMixProportion(treeState.getRawParameterValue("er mix")->load());
@@ -674,6 +671,10 @@ void COLOURAUMAudioProcessor::updateParams()
     gateModule.setRatio(treeState.getRawParameterValue("ratio")->load());
     gateModule.setAttack(treeState.getRawParameterValue("attack")->load());
     gateModule.setRelease(treeState.getRawParameterValue("release")->load());
+    
+    //tremolo pre post
+    tremOnOff = treeState.getRawParameterValue("tremolo")->load();
+    tremPrePost = treeState.getRawParameterValue("tremPrePost")->load();
     
     // Main Mix
     mixModule.setWetMixProportion(treeState.getRawParameterValue("main mix")->load());
