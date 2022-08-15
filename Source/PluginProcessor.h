@@ -59,7 +59,7 @@ public:
     juce::AudioProcessorValueTreeState treeState;
 private:
     
-    // pre filters
+    //Pre filters
     bool filtersOnOff { false };
     juce::dsp::LinkwitzRileyFilter<float> highPassFilter;
     juce::dsp::LinkwitzRileyFilter<float> lowPassFilter;
@@ -68,14 +68,10 @@ private:
     juce::LinearSmoothedValue<float> depthOne { 0.0 };
     juce::LinearSmoothedValue<float> freqOne { 0.0 };
     juce::LinearSmoothedValue<float> lfoOnePhase { 0.0 };
-    float lfoOne(float phase, int choice);
     float inverseSampleRate; // for LFO phase update
     int waveform  { 0 };
     void tremoloProcessing(juce::AudioBuffer<float>& buffer);
-    
-    // chorus object
-    juce::dsp::Chorus<float> chorusModule;
-    bool chorusOnOff { false };
+    float lfoOne(float phase, int choice);
     
     //Early Reflections
     bool earlyOnOff { false };
@@ -107,21 +103,22 @@ private:
     float erDepth = 0.0;
     void earlyReflectionsPrep();
     
-    //reverb and params
+    //Reverb and params
     bool reverbOnOff { true };
     bbg_dsp::ReverbUtilities::Parameters reverbParams;
     bbg_dsp::Reverb reverbModule;
     
-    // gate
+    //Gate
     bool gateOnOff { false };
     juce::dsp::NoiseGate<float> gateModule;
     
-    //main mix
+    //Main mix
     juce::dsp::DryWetMixer<float> mixModule;
     
     //Functions for param layout and changes
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     void parameterChanged (const juce::String& parameterID, float newValue) override;
+    void updateParams();
         
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (COLOURAUMAudioProcessor)

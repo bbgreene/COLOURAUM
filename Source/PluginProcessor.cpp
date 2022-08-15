@@ -146,11 +146,13 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     params.push_back(std::move(pPredelay));
     params.push_back(std::move(pPreSpeed));
     params.push_back(std::move(pPreDepth));
+    
     params.push_back(std::move(pSize));
     params.push_back(std::move(pDamp));
     params.push_back(std::move(pWidth));
     params.push_back(std::move(pBlend));
     params.push_back(std::move(pFreeze));
+    
     params.push_back(std::move(pGateOnOff));
     params.push_back(std::move(pThres));
     params.push_back(std::move(pRatio));
@@ -163,50 +165,20 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
 
 void COLOURAUMAudioProcessor::parameterChanged(const juce::String &parameterID, float newValue)
 {
-    // pre filters
-    filtersOnOff = treeState.getRawParameterValue("filters")->load();
-    highPassFilter.setCutoffFrequency(treeState.getRawParameterValue("hiPass")->load());
-    lowPassFilter.setCutoffFrequency(treeState.getRawParameterValue("loPass")->load());
+    updateParams();
     
-    // Tremolo params
+    predelayMS.setTargetValue(treeState.getRawParameterValue("predelay")->load());
     depthOne.setTargetValue(treeState.getRawParameterValue("lfo one depth")->load());
     freqOne.setTargetValue(treeState.getRawParameterValue("lfo one rate")->load());
     if(parameterID == "wave")
     {
         waveform = newValue;
     }
-    
-    //reverb params
-    reverbOnOff = treeState.getRawParameterValue("reverb")->load();
-    earlyOnOff = treeState.getRawParameterValue("er")->load();
     if(parameterID == "er type")
     {
         erSelection = newValue;
         earlyTimesSelection(static_cast<int>(newValue));
     }
-    earlyMixModule.setWetMixProportion(treeState.getRawParameterValue("er mix")->load());
-    erSpeed = treeState.getRawParameterValue("er speed")->load();
-    erDepth = treeState.getRawParameterValue("er depth")->load();
-    predelayMS.setTargetValue(treeState.getRawParameterValue("predelay")->load());
-//    predelayMS = treeState.getRawParameterValue("predelay")->load();
-    
-    reverbParams.roomSize = treeState.getRawParameterValue("size")->load();
-    reverbParams.damping = treeState.getRawParameterValue("damp")->load();
-    reverbParams.width = treeState.getRawParameterValue("width")->load();
-    reverbParams.wetLevel = treeState.getRawParameterValue("blend")->load();
-//    reverbParams.dryLevel = 1.0f - treeState.getRawParameterValue("mix")->load();
-    reverbParams.freezeMode = treeState.getRawParameterValue("freeze")->load();
-    reverbModule.setParameters(reverbParams);
-    
-    //gate params
-    gateOnOff = treeState.getRawParameterValue("gate")->load();
-    gateModule.setThreshold(treeState.getRawParameterValue("threshold")->load());
-    gateModule.setRatio(treeState.getRawParameterValue("ratio")->load());
-    gateModule.setAttack(treeState.getRawParameterValue("attack")->load());
-    gateModule.setRelease(treeState.getRawParameterValue("release")->load());
-    
-    // Mix module mix param
-    mixModule.setWetMixProportion(treeState.getRawParameterValue("main mix")->load());
 }
 
 //==============================================================================
@@ -279,33 +251,19 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     spec.maximumBlockSize = samplesPerBlock;
     spec.numChannels = getTotalNumOutputChannels();
     
-    // pre filters and prep
-    filtersOnOff = treeState.getRawParameterValue("filters")->load();
+    //prep
     highPassFilter.prepare(spec);
-    highPassFilter.setType(juce::dsp::LinkwitzRileyFilterType::highpass);
-    highPassFilter.setCutoffFrequency(treeState.getRawParameterValue("hiPass")->load());
-    
     lowPassFilter.prepare(spec);
-    lowPassFilter.setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
-    lowPassFilter.setCutoffFrequency(treeState.getRawParameterValue("loPass")->load());
+    reverbModule.prepare(spec);
+    gateModule.prepare(spec);
+    mixModule.prepare(spec);
+    earlyMixModule.prepare(spec);
     
-    // tremolo params and prep
     depthOne.reset(sampleRate, 0.001);
     freqOne.reset(sampleRate, 0.001);
     lfoOnePhase.reset(sampleRate, 0.001);
-    lfoOnePhase = 0.0;
-    inverseSampleRate = 1.0 / sampleRate;
-    waveform = treeState.getRawParameterValue("wave")->load();
-    
-    // for fractional delays
-    Fs = sampleRate;
-    
-    //Early Reflections
-    erSelection = treeState.getRawParameterValue("er type")->load();
     earlyTimesSelection(static_cast<int>(erSelection));
     earlyReflectionsPrep();
-    earlyMixModule.prepare(spec);
-    earlyMixModule.setWetMixProportion(treeState.getRawParameterValue("er mix")->load());
     earlyA.setFs(sampleRate);
     earlyA.setDelaySamples(0.0f);
     earlyB.setFs(sampleRate);
@@ -318,40 +276,22 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     earlyE.setDelaySamples(0.0f);
     earlyF.setFs(sampleRate);
     earlyF.setDelaySamples(0.0f);
-    earlyOnOff = treeState.getRawParameterValue("er")->load();
-    erSpeed = treeState.getRawParameterValue("er speed")->load();
-    erDepth = treeState.getRawParameterValue("er depth")->load();
-    
-    //Predelay
     predelay.setFs(sampleRate);
     predelay.setDelaySamples(0.0f);
     predelayMS.reset(sampleRate, 0.002);
+    
+    updateParams();
+    
     predelayMS.setCurrentAndTargetValue(treeState.getRawParameterValue("predelay")->load());
-//    predelayMS = treeState.getRawParameterValue("predelay")->load();
-    
-    
-    // reverb params and prep
-    reverbOnOff = treeState.getRawParameterValue("reverb")->load();
-    reverbModule.prepare(spec);
-    reverbParams.roomSize = treeState.getRawParameterValue("size")->load();
-    reverbParams.damping = treeState.getRawParameterValue("damp")->load();
-    reverbParams.width = treeState.getRawParameterValue("width")->load();
-    reverbParams.wetLevel = treeState.getRawParameterValue("blend")->load();
-//    reverbParams.dryLevel = 1.0f - treeState.getRawParameterValue("mix")->load();
-    reverbParams.freezeMode = treeState.getRawParameterValue("freeze")->load();
-    reverbModule.setParameters(reverbParams);
-    
-    // gate params and prep
-    gateOnOff = treeState.getRawParameterValue("gate")->load();
-    gateModule.prepare(spec);
-    gateModule.setThreshold(treeState.getRawParameterValue("threshold")->load());
-    gateModule.setRatio(treeState.getRawParameterValue("ratio")->load());
-    gateModule.setAttack(treeState.getRawParameterValue("attack")->load());
-    gateModule.setRelease(treeState.getRawParameterValue("release")->load());
-    
-    // Mix module mix param
-    mixModule.prepare(spec);
-    mixModule.setWetMixProportion(treeState.getRawParameterValue("main mix")->load());
+    erSelection = treeState.getRawParameterValue("er type")->load();
+    depthOne.setCurrentAndTargetValue(treeState.getRawParameterValue("lfo one depth")->load());
+    freqOne.setCurrentAndTargetValue(treeState.getRawParameterValue("lfo one rate")->load());
+    waveform = treeState.getRawParameterValue("wave")->load();
+    lfoOnePhase = 0.0;
+    inverseSampleRate = 1.0 / sampleRate;
+
+    // for fractional delays
+    Fs = sampleRate;
 }
 
 void COLOURAUMAudioProcessor::releaseResources()
@@ -395,25 +335,11 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
     
-    //Predelay
-    predelay.setDepth(0.0);
-    predelay.setSpeed(0.0);
-    //move this outside of process block?
-    float predelaySec = predelayMS.getNextValue() * 0.001;
-    float predelaySamples = predelaySec * Fs;
-    predelay.setDelaySamples(predelaySamples);
-    
-    reverbParams.roomSize = treeState.getRawParameterValue("size")->load();
-    reverbParams.damping = treeState.getRawParameterValue("damp")->load();
-    reverbParams.width = treeState.getRawParameterValue("width")->load();
-    reverbParams.wetLevel = treeState.getRawParameterValue("blend")->load();
-    reverbParams.freezeMode = treeState.getRawParameterValue("freeze")->load();
-    reverbModule.setParameters(reverbParams);
-    
     juce::dsp::AudioBlock<float> block (buffer);
     juce::dsp::ProcessContextReplacing<float> context (block);
     const auto& input = context.getInputBlock();
     const auto& output = context.getOutputBlock();
+    
     mixModule.pushDrySamples(input);
     
     if (filtersOnOff) { highPassFilter.process(context); lowPassFilter.process(context); }
@@ -469,6 +395,12 @@ void COLOURAUMAudioProcessor::earlyReflectionsPrep()
 
 void COLOURAUMAudioProcessor::preDelayProcesing(juce::dsp::AudioBlock<float>& block)
 {
+    predelay.setDepth(0.0);
+    predelay.setSpeed(0.0);
+    float predelaySec = predelayMS.getNextValue() * 0.001;
+    float predelaySamples = predelaySec * Fs;
+    predelay.setDelaySamples(predelaySamples);
+    
     for (int channel = 0; channel < block.getNumChannels(); ++channel)
     {
         auto* channelData = block.getChannelPointer(channel);
@@ -672,6 +604,41 @@ void COLOURAUMAudioProcessor::tremoloProcessing(juce::AudioBuffer<float> &buffer
         }
     }
     lfoOnePhase = phaseOne;
+}
+
+void COLOURAUMAudioProcessor::updateParams()
+{
+    // pre filters
+    filtersOnOff = treeState.getRawParameterValue("filters")->load();
+    highPassFilter.setType(juce::dsp::LinkwitzRileyFilterType::highpass);
+    highPassFilter.setCutoffFrequency(treeState.getRawParameterValue("hiPass")->load());
+    lowPassFilter.setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
+    lowPassFilter.setCutoffFrequency(treeState.getRawParameterValue("loPass")->load());
+    
+    // ERs
+    earlyOnOff = treeState.getRawParameterValue("er")->load();
+    earlyMixModule.setWetMixProportion(treeState.getRawParameterValue("er mix")->load());
+    erSpeed = treeState.getRawParameterValue("er speed")->load();
+    erDepth = treeState.getRawParameterValue("er depth")->load();
+    
+    // reverb
+    reverbOnOff = treeState.getRawParameterValue("reverb")->load();
+    reverbParams.roomSize = treeState.getRawParameterValue("size")->load();
+    reverbParams.damping = treeState.getRawParameterValue("damp")->load();
+    reverbParams.width = treeState.getRawParameterValue("width")->load();
+    reverbParams.wetLevel = treeState.getRawParameterValue("blend")->load();
+    reverbParams.freezeMode = treeState.getRawParameterValue("freeze")->load();
+    reverbModule.setParameters(reverbParams);
+    
+    //gate
+    gateOnOff = treeState.getRawParameterValue("gate")->load();
+    gateModule.setThreshold(treeState.getRawParameterValue("threshold")->load());
+    gateModule.setRatio(treeState.getRawParameterValue("ratio")->load());
+    gateModule.setAttack(treeState.getRawParameterValue("attack")->load());
+    gateModule.setRelease(treeState.getRawParameterValue("release")->load());
+    
+    // Main Mix
+    mixModule.setWetMixProportion(treeState.getRawParameterValue("main mix")->load());
 }
 
 //==============================================================================
