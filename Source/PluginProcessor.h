@@ -81,28 +81,22 @@ private:
     int erSelection { 0 };
     void earlyTimesSelection(int selection);
     float earlyAMS = 10.0;
-    float earlyAGain;
     float earlyBMS = 25.0;
-    float earlyBGain;
     float earlyCMS = 55.0;
-    float earlyCGain;
     float earlyDMS = 76.0;
-    float earlyDGain;
     float earlyEMS = 23.0;
-    float earlyEGain;
     float earlyFMS = 90.0;
-    float earlyFGain;
+    float earlyAGain, earlyBGain, earlyCGain, earlyDGain, earlyEGain, earlyFGain;
     void earlyReflectionsProcessing(juce::AudioBuffer<float>& buffer);
+    float Fs = 44100.0;
+    float erSpeed = 0.0;
+    float erDepth = 0.0;
+    void earlyReflectionsPrep();
     
     //Predelay object and params
     FractionalDelay predelay;
     juce::LinearSmoothedValue<float> predelayMS { 0.0 };
     void preDelayProcesing(juce::dsp::AudioBlock<float>& block);
-
-    float Fs = 44100.0;
-    float erSpeed = 0.0;
-    float erDepth = 0.0;
-    void earlyReflectionsPrep();
     
     //Reverb and params
     bool reverbOnOff { true };
