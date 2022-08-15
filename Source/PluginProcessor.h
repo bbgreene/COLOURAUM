@@ -73,6 +73,7 @@ private:
     bool tremPrePost { true };
     void tremoloProcessing(juce::AudioBuffer<float>& buffer);
     float lfoOne(float phase, int choice);
+    float twoPiMultiplier = 2.f * M_PI;
     
     //Early Reflections
     bool earlyOnOff { false };

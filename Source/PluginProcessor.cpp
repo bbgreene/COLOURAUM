@@ -571,7 +571,7 @@ float COLOURAUMAudioProcessor::lfoOne(float phase, int choice)
     switch (choice) {
         case 0:
             // sine wave
-            return 0.5 + 0.5 * sinf(2.0 * M_PI * phase);
+            return 0.5 + 0.5 * sinf(twoPiMultiplier * phase);
             break;
         case 1:
             // Triangle
@@ -594,11 +594,11 @@ float COLOURAUMAudioProcessor::lfoOne(float phase, int choice)
                 return 50.0f*(phase - 0.98f);
         case 3:
             // ring mod
-            return sinf(2.0 * M_PI * phase);
+            return sinf(twoPiMultiplier * phase);
             break;
             
         default:
-            return 0.5f + 0.5f * sinf(2.0 * M_PI * phase);
+            return 0.5f + 0.5f * sinf(twoPiMultiplier * phase);
             break;
     }
 }
