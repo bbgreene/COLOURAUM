@@ -508,6 +508,21 @@ void COLOURAUMAudioProcessor::earlyTimesSelection(int selection)
             earlyFGain = 0.6;
             break;
             
+        case 5: // extremely late
+            earlyAMS = 80.0;
+            earlyBMS = 100.0;
+            earlyCMS = 90.0;
+            earlyDMS = 150.0;
+            earlyEMS = 170.0;
+            earlyFMS = 350.0;
+            earlyAGain = 0.9;
+            earlyBGain = 0.8;
+            earlyCGain = 0.9;
+            earlyDGain = 0.8;
+            earlyEGain = 0.7;
+            earlyFGain = 0.6;
+            break;
+            
         default:
             break;
     }
@@ -538,8 +553,8 @@ void COLOURAUMAudioProcessor::earlyReflectionsProcessing(juce::AudioBuffer<float
         
         leftData[sample] = earlyA.processSample(left, 0 , earlyAGain) + earlyB.processSample(left, 0, earlyBGain) + earlyE.processSample(left, 0, earlyEGain) + earlyF.processSample(left, 0, earlyFGain);
         rightData[sample] = earlyC.processSample(right, 1, earlyCGain) + earlyD.processSample(right, 1, earlyDGain) + earlyE.processSample(right, 1, earlyEGain) + earlyF.processSample(right, 1, earlyFGain);
-        leftData[sample] *= 0.5;
-        rightData[sample] *= 0.5;
+        leftData[sample] *= 0.7;
+        rightData[sample] *= 0.7;
         
         const auto mid = coef_M * (leftData[sample] + rightData[sample]);
         const auto side = coef_S * (rightData[sample] - leftData[sample]);
