@@ -26,6 +26,7 @@ COLOURAUMAudioProcessor::COLOURAUMAudioProcessor()
     treeState.addParameterListener("hiPass", this);
     treeState.addParameterListener("loPass", this);
     
+    treeState.addParameterListener("tremPrePost", this);
     treeState.addParameterListener("wave", this);
     treeState.addParameterListener("lfo one depth", this);
     treeState.addParameterListener("lfo one rate", this);
@@ -56,6 +57,7 @@ COLOURAUMAudioProcessor::~COLOURAUMAudioProcessor()
     treeState.removeParameterListener("hiPass", this);
     treeState.removeParameterListener("loPass", this);
     
+    treeState.removeParameterListener("tremPrePost", this);
     treeState.removeParameterListener("wave", this);
     treeState.removeParameterListener("lfo one depth", this);
     treeState.removeParameterListener("lfo one rate", this);
@@ -91,6 +93,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     auto pHighPassFreq = std::make_unique<juce::AudioParameterFloat> ("hiPass", "HiPass", 20.0, 2000.0, 20.0);
     auto pLowPassFreq = std::make_unique<juce::AudioParameterFloat> ("loPass", "LoPass", 5000.0, 20000.0, 20000.0);
     
+    auto pTremPrePost = std::make_unique<juce::AudioParameterBool>("tremPrePost", "TremPrePost", true);
     auto pWaveform = std::make_unique<juce::AudioParameterChoice>("wave", "Wave", waveformSelector, 0);
     auto pDepthOne = std::make_unique<juce::AudioParameterFloat>("lfo one depth",
                                                                      "LFO 1 Depth",
@@ -135,6 +138,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     params.push_back(std::move(pHighPassFreq));
     params.push_back(std::move(pLowPassFreq));
     
+    params.push_back(std::move(pTremPrePost));
     params.push_back(std::move(pWaveform));
     params.push_back(std::move(pDepthOne));
     params.push_back(std::move(pFreqOne));
@@ -343,12 +347,24 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     mixModule.pushDrySamples(input);
     
     if (filtersOnOff) { highPassFilter.process(context); lowPassFilter.process(context); }
-    preDelayProcesing(block);
-    if(earlyOnOff){ earlyReflectionsProcessing(buffer); }
-    if (reverbOnOff) { reverbModule.process(context); }
-    if (gateOnOff) { gateModule.process(context); }
-    tremoloProcessing(buffer);
-
+    
+    if(tremPrePost)
+    {
+        preDelayProcesing(block);
+        if(earlyOnOff){ earlyReflectionsProcessing(buffer); }
+        if (reverbOnOff) { reverbModule.process(context); }
+        if (gateOnOff) { gateModule.process(context); }
+        tremoloProcessing(buffer);
+    }
+    else
+    {
+        tremoloProcessing(buffer);
+        preDelayProcesing(block);
+        if(earlyOnOff){ earlyReflectionsProcessing(buffer); }
+        if (reverbOnOff) { reverbModule.process(context); }
+        if (gateOnOff) { gateModule.process(context); }
+    }
+    
     mixModule.mixWetSamples(output);
 }
 
@@ -614,6 +630,9 @@ void COLOURAUMAudioProcessor::updateParams()
     highPassFilter.setCutoffFrequency(treeState.getRawParameterValue("hiPass")->load());
     lowPassFilter.setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
     lowPassFilter.setCutoffFrequency(treeState.getRawParameterValue("loPass")->load());
+    
+    //tremolo pre post
+    tremPrePost = treeState.getRawParameterValue("tremPrePost")->load();
     
     // ERs
     earlyOnOff = treeState.getRawParameterValue("er")->load();
