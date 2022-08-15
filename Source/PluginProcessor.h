@@ -71,6 +71,7 @@ private:
     float lfoOne(float phase, int choice);
     float inverseSampleRate; // for LFO phase update
     int waveform  { 0 };
+    void tremoloProcessing(juce::AudioBuffer<float>& buffer);
     
     // chorus object
     juce::dsp::Chorus<float> chorusModule;

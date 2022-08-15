@@ -455,7 +455,6 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     mixModule.pushDrySamples(input);
     
     if (filtersOnOff) { highPassFilter.process(context); lowPassFilter.process(context); }
-//    if (chorusOnOff) { chorusModule.process(context); }
     
     juce::dsp::AudioBlock<float> erBlock (buffer);
     juce::dsp::ProcessContextReplacing<float> erContext (erBlock);
@@ -507,42 +506,13 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     
     if (reverbOnOff)
     {
-        
         reverbModule.process(context);
     }
     if (gateOnOff) { gateModule.process(context); }
     
-    //LFO One parameters
-    float myDepthOnePercentage = *treeState.getRawParameterValue("lfo one depth"); //getting 0 - 100 from dial
-    float myDepthOne = juce::jmap(myDepthOnePercentage, 0.0f, 100.0f, 0.0f, 1.0f); // converting to 0 - 1
-    depthOne.setTargetValue(myDepthOne);
-    float myFreqOne = *treeState.getRawParameterValue("lfo one rate");
-    freqOne.setTargetValue(myFreqOne);
-
-    float currentDepthOne = depthOne.getNextValue();
-    float currentFrequencyOne = freqOne.getNextValue();
-    float phaseOne = lfoOnePhase.getNextValue();
     //Processing Tremolo
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
-    {
-        auto* channelData = buffer.getWritePointer(channel);
-        phaseOne = lfoOnePhase.getNextValue();
+    tremoloProcessing(buffer);
 
-        for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
-        {
-            const float in = channelData[sample];
-            // Tremolo
-            float out = in * (1 - currentDepthOne + currentDepthOne * lfoOne(phaseOne, waveform));
-            channelData[sample] = out;
-
-            // Update the carrier and LFO One phases, keeping them in the range 0-1.
-            phaseOne += currentFrequencyOne * inverseSampleRate;
-            if (phaseOne >= 1.0)
-            phaseOne -= 1.0;
-        }
-    }
-    lfoOnePhase = phaseOne;
-    
     mixModule.mixWetSamples(output);
 }
 
@@ -666,6 +636,40 @@ float COLOURAUMAudioProcessor::lfoOne(float phase, int choice)
             return 0.5f + 0.5f * sinf(2.0 * M_PI * phase);
             break;
     }
+}
+
+void COLOURAUMAudioProcessor::tremoloProcessing(juce::AudioBuffer<float> &buffer)
+{
+    //LFO One parameters
+    float myDepthOnePercentage = *treeState.getRawParameterValue("lfo one depth"); //getting 0 - 100 from dial
+    float myDepthOne = juce::jmap(myDepthOnePercentage, 0.0f, 100.0f, 0.0f, 1.0f); // converting to 0 - 1
+    depthOne.setTargetValue(myDepthOne);
+    float myFreqOne = *treeState.getRawParameterValue("lfo one rate");
+    freqOne.setTargetValue(myFreqOne);
+
+    float currentDepthOne = depthOne.getNextValue();
+    float currentFrequencyOne = freqOne.getNextValue();
+    float phaseOne = lfoOnePhase.getNextValue();
+    
+    for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
+    {
+        auto* channelData = buffer.getWritePointer(channel);
+        phaseOne = lfoOnePhase.getNextValue();
+
+        for (int sample = 0; sample < buffer.getNumSamples(); ++sample)
+        {
+            const float in = channelData[sample];
+            // Tremolo
+            float out = in * (1 - currentDepthOne + currentDepthOne * lfoOne(phaseOne, waveform));
+            channelData[sample] = out;
+
+            // Update the carrier and LFO One phases, keeping them in the range 0-1.
+            phaseOne += currentFrequencyOne * inverseSampleRate;
+            if (phaseOne >= 1.0)
+            phaseOne -= 1.0;
+        }
+    }
+    lfoOnePhase = phaseOne;
 }
 
 //==============================================================================
