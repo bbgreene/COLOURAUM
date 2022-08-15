@@ -74,6 +74,8 @@ private:
     void tremoloProcessing(juce::AudioBuffer<float>& buffer);
     float lfoOne(float phase, int choice);
     float twoPiMultiplier = 2.f * M_PI;
+    float myDepthOnePercentage;
+    float myDepthOne;
     
     //Early Reflections
     bool earlyOnOff { false };

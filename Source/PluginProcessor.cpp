@@ -288,7 +288,9 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     
     predelayMS.setCurrentAndTargetValue(treeState.getRawParameterValue("predelay")->load());
     erSelection = treeState.getRawParameterValue("er type")->load();
-    depthOne.setCurrentAndTargetValue(treeState.getRawParameterValue("lfo one depth")->load());
+    myDepthOnePercentage = treeState.getRawParameterValue("lfo one depth")->load(); //getting 0 - 100 from dial
+    myDepthOne = juce::jmap(myDepthOnePercentage, 0.0f, 100.0f, 0.0f, 1.0f);
+    depthOne.setCurrentAndTargetValue(myDepthOne);
     freqOne.setCurrentAndTargetValue(treeState.getRawParameterValue("lfo one rate")->load());
     waveform = treeState.getRawParameterValue("wave")->load();
     lfoOnePhase = 0.0;
@@ -606,8 +608,8 @@ float COLOURAUMAudioProcessor::lfoOne(float phase, int choice)
 void COLOURAUMAudioProcessor::tremoloProcessing(juce::AudioBuffer<float> &buffer)
 {
     //LFO One parameters
-    float myDepthOnePercentage = *treeState.getRawParameterValue("lfo one depth"); //getting 0 - 100 from dial
-    float myDepthOne = juce::jmap(myDepthOnePercentage, 0.0f, 100.0f, 0.0f, 1.0f); // converting to 0 - 1
+    myDepthOnePercentage = *treeState.getRawParameterValue("lfo one depth"); //getting 0 - 100 from dial
+    myDepthOne = juce::jmap(myDepthOnePercentage, 0.0f, 100.0f, 0.0f, 1.0f); // converting to 0 - 1
     depthOne.setTargetValue(myDepthOne);
     float myFreqOne = *treeState.getRawParameterValue("lfo one rate");
     freqOne.setTargetValue(myFreqOne);
