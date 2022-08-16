@@ -28,7 +28,6 @@ COLOURAUMAudioProcessor::COLOURAUMAudioProcessor()
     treeState.addParameterListener("reverb", this);
     treeState.addParameterListener("er", this);
     treeState.addParameterListener("er type", this);
-    treeState.addParameterListener("erloPass", this);
     treeState.addParameterListener("er mix", this);
     treeState.addParameterListener("predelay", this);
     treeState.addParameterListener("er speed", this);
@@ -59,7 +58,6 @@ COLOURAUMAudioProcessor::~COLOURAUMAudioProcessor()
     treeState.removeParameterListener("reverb", this);
     treeState.removeParameterListener("er", this);
     treeState.removeParameterListener("er type", this);
-    treeState.removeParameterListener("erloPass", this);
     treeState.removeParameterListener("er mix", this);
     treeState.removeParameterListener("predelay", this);
     treeState.removeParameterListener("er speed", this);
@@ -96,7 +94,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     auto pReverbOnOff = std::make_unique<juce::AudioParameterBool> ("reverb", "Reverb", true);
     auto pEarlyOnOff = std::make_unique<juce::AudioParameterBool> ("er", "ER", true);
     auto pEarlySelection = std::make_unique<juce::AudioParameterInt>("er type", "ER Type", 0, 5, 0);
-    auto pERLowPassFreq = std::make_unique<juce::AudioParameterFloat> ("erloPass", "ERLoPass", 1000.0, 20000.0, 20000.0);
     auto pEarlyMix = std::make_unique<juce::AudioParameterFloat> ("er mix", "ER Mix", 0.0, 1.0, 0.5);
     auto pPredelay = std::make_unique<juce::AudioParameterFloat> ("predelay", "Predelay", juce::NormalisableRange<float>(0.0, 200.0, 1.0, 1.0), 0.0);
     auto pPreSpeed = std::make_unique<juce::AudioParameterFloat> ("er speed", "ER Speed", 0.0, 200.0, 0.01);
@@ -143,7 +140,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     params.push_back(std::move(pReverbOnOff));
     params.push_back(std::move(pEarlyOnOff));
     params.push_back(std::move(pEarlySelection));
-    params.push_back(std::move(pERLowPassFreq));
     params.push_back(std::move(pEarlyMix));
     params.push_back(std::move(pPredelay));
     params.push_back(std::move(pPreSpeed));
@@ -174,7 +170,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
 
 void COLOURAUMAudioProcessor::parameterChanged(const juce::String &parameterID, float newValue)
 {
-    updateParams();
+    
     
     predelayMS.setTargetValue(treeState.getRawParameterValue("predelay")->load());
     myDepthOnePercentage = treeState.getRawParameterValue("lfo one depth")->load(); //getting 0 - 100 from dial
@@ -190,6 +186,7 @@ void COLOURAUMAudioProcessor::parameterChanged(const juce::String &parameterID, 
         erSelection = newValue;
         earlyTimesSelection(static_cast<int>(newValue));
     }
+    updateParams();
 }
 
 //==============================================================================
@@ -292,8 +289,6 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     predelay.setDelaySamples(0.0f);
     predelayMS.reset(sampleRate, 0.002);
     
-    updateParams();
-    
     predelayMS.setCurrentAndTargetValue(treeState.getRawParameterValue("predelay")->load());
     erSelection = treeState.getRawParameterValue("er type")->load();
     myDepthOnePercentage = treeState.getRawParameterValue("lfo one depth")->load(); //getting 0 - 100 from dial
@@ -303,6 +298,8 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     waveform = treeState.getRawParameterValue("wave")->load();
     lfoOnePhase = 0.0;
     inverseSampleRate = 1.0 / sampleRate;
+    
+    updateParams();
 
     // for fractional delays
     Fs = sampleRate;
@@ -456,6 +453,7 @@ void COLOURAUMAudioProcessor::earlyTimesSelection(int selection)
             earlyDGain = 0.8;
             earlyEGain = 0.6;
             earlyFGain = 0.6;
+            earlyFilterValue = 16000.0;
             break;
             
         case 1: // medium room
@@ -471,6 +469,7 @@ void COLOURAUMAudioProcessor::earlyTimesSelection(int selection)
             earlyDGain = 0.8;
             earlyEGain = 0.7;
             earlyFGain = 0.6;
+            earlyFilterValue = 15000.0;
             break;
             
         case 2: // large room
@@ -486,6 +485,7 @@ void COLOURAUMAudioProcessor::earlyTimesSelection(int selection)
             earlyDGain = 0.8;
             earlyEGain = 0.7;
             earlyFGain = 0.6;
+            earlyFilterValue = 14000.0;
             break;
             
         case 3: // large Hall
@@ -495,12 +495,13 @@ void COLOURAUMAudioProcessor::earlyTimesSelection(int selection)
             earlyDMS = 69.0;
             earlyEMS = 70.0;
             earlyFMS = 180.0;
-            earlyAGain = 0.9;
-            earlyBGain = 0.6;
-            earlyCGain = 0.9;
+            earlyAGain = 1.0;
+            earlyBGain = 0.7;
+            earlyCGain = 1.0;
             earlyDGain = 0.6;
-            earlyEGain = 0.5;
+            earlyEGain = 0.6;
             earlyFGain = 0.4;
+            earlyFilterValue = 13000.0;
             break;
             
         case 4: // huge space
@@ -516,6 +517,7 @@ void COLOURAUMAudioProcessor::earlyTimesSelection(int selection)
             earlyDGain = 0.8;
             earlyEGain = 0.7;
             earlyFGain = 0.6;
+            earlyFilterValue = 12000.0;
             break;
             
         case 5: // extremely late
@@ -531,6 +533,7 @@ void COLOURAUMAudioProcessor::earlyTimesSelection(int selection)
             earlyDGain = 0.8;
             earlyEGain = 0.7;
             earlyFGain = 0.6;
+            earlyFilterValue = 11000.0;
             break;
             
         default:
@@ -661,7 +664,8 @@ void COLOURAUMAudioProcessor::updateParams()
     // ERs
     earlyOnOff = treeState.getRawParameterValue("er")->load();
     earlyLowPassFilter.setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
-    earlyLowPassFilter.setCutoffFrequency(treeState.getRawParameterValue("erloPass")->load());
+    earlyLowPassFilter.setCutoffFrequency(earlyFilterValue);
+    DBG(earlyFilterValue);
     earlyMixModule.setWetMixProportion(treeState.getRawParameterValue("er mix")->load());
     erSpeed = treeState.getRawParameterValue("er speed")->load();
     erDepth = treeState.getRawParameterValue("er depth")->load();

@@ -83,7 +83,6 @@ private:
     bool earlyOnOff { false };
     FractionalDelay earlyA, earlyB, earlyC, earlyD , earlyE, earlyF;
     juce::dsp::DryWetMixer<float> earlyMixModule;
-    juce::dsp::LinkwitzRileyFilter<float> earlyLowPassFilter;
     int erSelection { 0 };
     void earlyTimesSelection(int selection);
     float earlyAMS = 10.0;
@@ -93,6 +92,8 @@ private:
     float earlyEMS = 23.0;
     float earlyFMS = 90.0;
     float earlyAGain, earlyBGain, earlyCGain, earlyDGain, earlyEGain, earlyFGain;
+    float earlyFilterValue;
+    juce::dsp::LinkwitzRileyFilter<float> earlyLowPassFilter;
     void earlyReflectionsProcessing(juce::AudioBuffer<float>& buffer);
     float Fs = 44100.0;
     float erSpeed = 0.0;
