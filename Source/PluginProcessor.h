@@ -64,6 +64,7 @@ private:
     juce::dsp::LinkwitzRileyFilter<float> highPassFilter;
     juce::dsp::LinkwitzRileyFilter<float> lowPassFilter;
     
+    
     //LFO Variables & functions
     juce::LinearSmoothedValue<float> depthOne { 0.0 };
     juce::LinearSmoothedValue<float> freqOne { 0.0 };
@@ -82,6 +83,7 @@ private:
     bool earlyOnOff { false };
     FractionalDelay earlyA, earlyB, earlyC, earlyD , earlyE, earlyF;
     juce::dsp::DryWetMixer<float> earlyMixModule;
+    juce::dsp::LinkwitzRileyFilter<float> earlyLowPassFilter;
     int erSelection { 0 };
     void earlyTimesSelection(int selection);
     float earlyAMS = 10.0;

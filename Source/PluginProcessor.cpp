@@ -28,6 +28,7 @@ COLOURAUMAudioProcessor::COLOURAUMAudioProcessor()
     treeState.addParameterListener("reverb", this);
     treeState.addParameterListener("er", this);
     treeState.addParameterListener("er type", this);
+    treeState.addParameterListener("erloPass", this);
     treeState.addParameterListener("er mix", this);
     treeState.addParameterListener("predelay", this);
     treeState.addParameterListener("er speed", this);
@@ -58,6 +59,7 @@ COLOURAUMAudioProcessor::~COLOURAUMAudioProcessor()
     treeState.removeParameterListener("reverb", this);
     treeState.removeParameterListener("er", this);
     treeState.removeParameterListener("er type", this);
+    treeState.removeParameterListener("erloPass", this);
     treeState.removeParameterListener("er mix", this);
     treeState.removeParameterListener("predelay", this);
     treeState.removeParameterListener("er speed", this);
@@ -94,6 +96,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     auto pReverbOnOff = std::make_unique<juce::AudioParameterBool> ("reverb", "Reverb", true);
     auto pEarlyOnOff = std::make_unique<juce::AudioParameterBool> ("er", "ER", true);
     auto pEarlySelection = std::make_unique<juce::AudioParameterInt>("er type", "ER Type", 0, 5, 0);
+    auto pERLowPassFreq = std::make_unique<juce::AudioParameterFloat> ("erloPass", "ERLoPass", 1000.0, 20000.0, 20000.0);
     auto pEarlyMix = std::make_unique<juce::AudioParameterFloat> ("er mix", "ER Mix", 0.0, 1.0, 0.5);
     auto pPredelay = std::make_unique<juce::AudioParameterFloat> ("predelay", "Predelay", juce::NormalisableRange<float>(0.0, 200.0, 1.0, 1.0), 0.0);
     auto pPreSpeed = std::make_unique<juce::AudioParameterFloat> ("er speed", "ER Speed", 0.0, 200.0, 0.01);
@@ -140,6 +143,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     params.push_back(std::move(pReverbOnOff));
     params.push_back(std::move(pEarlyOnOff));
     params.push_back(std::move(pEarlySelection));
+    params.push_back(std::move(pERLowPassFreq));
     params.push_back(std::move(pEarlyMix));
     params.push_back(std::move(pPredelay));
     params.push_back(std::move(pPreSpeed));
@@ -156,7 +160,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     params.push_back(std::move(pRatio));
     params.push_back(std::move(pAtt));
     params.push_back(std::move(pRel));
-    params.push_back(std::move(pMix));
     
     params.push_back(std::move(pTremOnOff));
     params.push_back(std::move(pTremPrePost));
@@ -164,6 +167,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     params.push_back(std::move(pDepthOne));
     params.push_back(std::move(pFreqOne));
     
+    params.push_back(std::move(pMix));
+
     return { params.begin(), params.end() };
 }
 
@@ -260,13 +265,14 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     //prep
     highPassFilter.prepare(spec);
     lowPassFilter.prepare(spec);
+    earlyLowPassFilter.prepare(spec);
     reverbModule.prepare(spec);
     gateModule.prepare(spec);
     mixModule.prepare(spec);
     earlyMixModule.prepare(spec);
     
     depthOne.reset(sampleRate, 0.001);
-    freqOne.reset(sampleRate, 0.001);
+    freqOne.reset(sampleRate, 0.0001);
     lfoOnePhase.reset(sampleRate, 0.001);
     earlyTimesSelection(static_cast<int>(erSelection));
     earlyReflectionsPrep();
@@ -566,6 +572,7 @@ void COLOURAUMAudioProcessor::earlyReflectionsProcessing(juce::AudioBuffer<float
         leftData[sample] = mid - side;
         rightData[sample] = mid + side;
     }
+    earlyLowPassFilter.process(erContext);
     earlyMixModule.mixWetSamples(erOutput);
 }
 
@@ -618,6 +625,7 @@ void COLOURAUMAudioProcessor::tremoloProcessing(juce::AudioBuffer<float> &buffer
 
     float currentDepthOne = depthOne.getNextValue();
     float currentFrequencyOne = freqOne.getNextValue();
+    DBG(currentFrequencyOne);
     float phaseOne = lfoOnePhase.getNextValue();
     
     for (int channel = 0; channel < buffer.getNumChannels(); ++channel)
@@ -652,6 +660,8 @@ void COLOURAUMAudioProcessor::updateParams()
     
     // ERs
     earlyOnOff = treeState.getRawParameterValue("er")->load();
+    earlyLowPassFilter.setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
+    earlyLowPassFilter.setCutoffFrequency(treeState.getRawParameterValue("erloPass")->load());
     earlyMixModule.setWetMixProportion(treeState.getRawParameterValue("er mix")->load());
     erSpeed = treeState.getRawParameterValue("er speed")->load();
     erDepth = treeState.getRawParameterValue("er depth")->load();
