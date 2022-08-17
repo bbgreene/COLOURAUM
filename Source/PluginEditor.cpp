@@ -24,6 +24,12 @@ COLOURAUMAudioProcessorEditor::COLOURAUMAudioProcessorEditor (COLOURAUMAudioProc
     addAndMakeVisible(earlyRate);
     earlyDepth.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
     addAndMakeVisible(earlyDepth);
+    size.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    addAndMakeVisible(size);
+    predelay.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    addAndMakeVisible(predelay);
+    damp.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    addAndMakeVisible(damp);
     
     //DIAL LABEL ATTACHMENTS
     highPassLabel.attachToComponent(&highPass, false);
@@ -31,6 +37,9 @@ COLOURAUMAudioProcessorEditor::COLOURAUMAudioProcessorEditor (COLOURAUMAudioProc
     earlyVolumeLabel.attachToComponent(&earlyVolume, false);
     earlyRateLabel.attachToComponent(&earlyRate, false);
     earlyDepthLabel.attachToComponent(&earlyDepth, false);
+    sizeLabel.attachToComponent(&size, false);
+    predelayLabel.attachToComponent(&predelay, false);
+    dampLabel.attachToComponent(&damp, false);
     
     // BORDERS
     filterBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::steelblue.brighter());
@@ -150,14 +159,17 @@ void COLOURAUMAudioProcessorEditor::resized()
     colouraumVersion.setBounds(versionX, versionY, versionWidth, versionHeight);
     olumay.setBounds(olumayX, olumayY, versionWidth, versionHeight);
     
-    auto smallDialSize = getWidth() * 0.07;// 0.1166;
+    auto smallDialSize = getWidth() * 0.07;
+    auto bigDialSize = getWidth() * 0.102412;
     auto topRowY = getHeight() * 0.313055;
     auto bottomRowY = getHeight() * 0.634681;
 
     auto filtersX = filterBorder.getX() * 1.32125;
     auto earlyVolumeX = earlyReflectionsBorder.getX() * 1.11316;
     auto earlyModParamsX = earlyReflectionsBorder.getX() * 1.859;
-    
+    auto sizeX = reverbBorder.getX() * 1.03;
+    auto sizeY = reverbBorder.getY() * 1.91164;
+    auto predelayDampX = reverbBorder.getX() * 1.343;
     
     highPass.setBounds(filtersX, topRowY, smallDialSize, smallDialSize);
     lowPass.setBounds(filtersX, bottomRowY, smallDialSize, smallDialSize);
@@ -165,6 +177,9 @@ void COLOURAUMAudioProcessorEditor::resized()
     earlyVolume.setBounds(earlyVolumeX, topRowY, smallDialSize, smallDialSize);
     earlyRate.setBounds(earlyModParamsX, topRowY, smallDialSize, smallDialSize);
     earlyDepth.setBounds(earlyModParamsX, bottomRowY, smallDialSize, smallDialSize);
-
+    
+    size.setBounds(sizeX, sizeY, bigDialSize, bigDialSize);
+    predelay.setBounds(predelayDampX, topRowY, smallDialSize, smallDialSize);
+    damp.setBounds(predelayDampX, bottomRowY, smallDialSize, smallDialSize);
 
 }

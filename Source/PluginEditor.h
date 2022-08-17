@@ -37,6 +37,9 @@ private:
     bbg_gui::bbg_Dial earlyVolume { "", 0.0, 1.0, 0.01, 0.5, 0.0 };
     bbg_gui::bbg_Dial earlyRate { "", 0.0, 200.0, 0.1, 0.0, 0.0 };
     bbg_gui::bbg_Dial earlyDepth { "", 0.0, 100.0, 0.1, 0.0, 0.0 };
+    bbg_gui::bbg_Dial size { "", 0.0, 1.0, 0.01, 0.2, 0.0 };
+    bbg_gui::bbg_Dial predelay { "", 0.0, 200.0, 0.01, 0.0, 0.0 };
+    bbg_gui::bbg_Dial damp { "", 0.0, 1.0, 0.01, 0.0, 0.0 };
     
     // LABELS
     bbg_gui::bbg_dialLabel highPassLabel { "High" };
@@ -44,6 +47,9 @@ private:
     bbg_gui::bbg_dialLabel earlyVolumeLabel { "Amount" };
     bbg_gui::bbg_dialLabel earlyRateLabel { "Mod Rate" };
     bbg_gui::bbg_dialLabel earlyDepthLabel { "Mod Depth" };
+    bbg_gui::bbg_dialLabel sizeLabel { "Size" };
+    bbg_gui::bbg_dialLabel predelayLabel { "Predelay" };
+    bbg_gui::bbg_dialLabel dampLabel { "Damp" };
     
     // BORDERS
     juce::GroupComponent filterBorder;
