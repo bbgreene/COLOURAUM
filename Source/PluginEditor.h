@@ -31,6 +31,20 @@ public:
 
 private:
     
+    // DIALS, BUTTONS AND MENUS
+    bbg_gui::bbg_Dial highPass { "", 20, 2000.0, 1.0, 20.0, 0.0 };
+    bbg_gui::bbg_Dial lowPass { "", 5000.0, 20000.0, 1.0, 20000.0, 0.0 };
+    bbg_gui::bbg_Dial earlyVolume { "", 0.0, 1.0, 0.01, 0.5, 0.0 };
+    bbg_gui::bbg_Dial earlyRate { "", 0.0, 200.0, 0.1, 0.0, 0.0 };
+    bbg_gui::bbg_Dial earlyDepth { "", 0.0, 100.0, 0.1, 0.0, 0.0 };
+    
+    // LABELS
+    bbg_gui::bbg_dialLabel highPassLabel { "High" };
+    bbg_gui::bbg_dialLabel lowPassLabel { "Low" };
+    bbg_gui::bbg_dialLabel earlyVolumeLabel { "Amount" };
+    bbg_gui::bbg_dialLabel earlyRateLabel { "Mod Rate" };
+    bbg_gui::bbg_dialLabel earlyDepthLabel { "Mod Depth" };
+    
     // BORDERS
     juce::GroupComponent filterBorder;
     juce::GroupComponent earlyReflectionsBorder;

@@ -13,6 +13,24 @@
 COLOURAUMAudioProcessorEditor::COLOURAUMAudioProcessorEditor (COLOURAUMAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p)
 {
+    // DIALS, BUTTONS, MENUS & PARAMETER ATTACHMENTS
+    highPass.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    addAndMakeVisible(highPass);
+    lowPass.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    addAndMakeVisible(lowPass);
+    earlyVolume.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    addAndMakeVisible(earlyVolume);
+    earlyRate.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    addAndMakeVisible(earlyRate);
+    earlyDepth.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    addAndMakeVisible(earlyDepth);
+    
+    //DIAL LABEL ATTACHMENTS
+    highPassLabel.attachToComponent(&highPass, false);
+    lowPassLabel.attachToComponent(&lowPass, false);
+    earlyVolumeLabel.attachToComponent(&earlyVolume, false);
+    earlyRateLabel.attachToComponent(&earlyRate, false);
+    earlyDepthLabel.attachToComponent(&earlyDepth, false);
     
     // BORDERS
     filterBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::steelblue.brighter());
@@ -131,5 +149,22 @@ void COLOURAUMAudioProcessorEditor::resized()
     colouraumTitle.setBounds(colouraumTitleX, colouraumTitleY, colouraumTitleWidth, colouraumTitleHeight);
     colouraumVersion.setBounds(versionX, versionY, versionWidth, versionHeight);
     olumay.setBounds(olumayX, olumayY, versionWidth, versionHeight);
+    
+    auto smallDialSize = getWidth() * 0.07;// 0.1166;
+    auto topRowY = getHeight() * 0.313055;
+    auto bottomRowY = getHeight() * 0.634681;
+
+    auto filtersX = filterBorder.getX() * 1.32125;
+    auto earlyVolumeX = earlyReflectionsBorder.getX() * 1.11316;
+    auto earlyModParamsX = earlyReflectionsBorder.getX() * 1.859;
+    
+    
+    highPass.setBounds(filtersX, topRowY, smallDialSize, smallDialSize);
+    lowPass.setBounds(filtersX, bottomRowY, smallDialSize, smallDialSize);
+    
+    earlyVolume.setBounds(earlyVolumeX, topRowY, smallDialSize, smallDialSize);
+    earlyRate.setBounds(earlyModParamsX, topRowY, smallDialSize, smallDialSize);
+    earlyDepth.setBounds(earlyModParamsX, bottomRowY, smallDialSize, smallDialSize);
+
 
 }
