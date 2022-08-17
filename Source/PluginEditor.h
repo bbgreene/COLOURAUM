@@ -25,6 +25,15 @@ public:
     void resized() override;
 
 private:
+    
+    // BORDERS
+    juce::GroupComponent filterBorder;
+    juce::GroupComponent earlyReflectionsBorder;
+    juce::GroupComponent reverbBorder;
+    juce::GroupComponent gateBorder;
+    juce::GroupComponent tremoloBorder;
+    juce::GroupComponent outBorder;
+    
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     COLOURAUMAudioProcessor& audioProcessor;

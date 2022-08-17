@@ -290,7 +290,6 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     earlyF.setDelaySamples(0.0f);
     predelay.setFs(sampleRate);
     predelay.setDelaySamples(0.0f);
-    predelay.clear();
     predelayMS.reset(sampleRate, 0.0001);
     earlyTimesSelection(static_cast<int>(erSelection));
     earlyReflectionsPrep();
@@ -707,8 +706,8 @@ bool COLOURAUMAudioProcessor::hasEditor() const
 
 juce::AudioProcessorEditor* COLOURAUMAudioProcessor::createEditor()
 {
-//    return new COLOURAUMAudioProcessorEditor (*this);
-    return new juce::GenericAudioProcessorEditor (*this);
+    return new COLOURAUMAudioProcessorEditor (*this);
+//    return new juce::GenericAudioProcessorEditor (*this);
 }
 
 //==============================================================================
