@@ -52,7 +52,7 @@ COLOURAUMAudioProcessorEditor::COLOURAUMAudioProcessorEditor (COLOURAUMAudioProc
     addAndMakeVisible(outBorder);
 
     setResizable(false, false);
-    setSize (1005, 330);
+    setSize (1065, 330);
 }
 
 COLOURAUMAudioProcessorEditor::~COLOURAUMAudioProcessorEditor()
@@ -63,7 +63,7 @@ COLOURAUMAudioProcessorEditor::~COLOURAUMAudioProcessorEditor()
 void COLOURAUMAudioProcessorEditor::paint (juce::Graphics& g)
 {
     juce::Rectangle<int> background = getLocalBounds();
-       g.setGradientFill(juce::ColourGradient::vertical(juce::Colours::mediumpurple, getHeight() - getHeight(), juce::Colours::mediumpurple.darker(), getHeight()));
+       g.setGradientFill(juce::ColourGradient::vertical(juce::Colours::mediumpurple, getHeight() - getHeight(), juce::Colours::purple.darker(), getHeight()));
        g.fillRect(background);
 }
 
@@ -71,14 +71,14 @@ void COLOURAUMAudioProcessorEditor::resized()
 {
     /*
      height = 250
-     small border = 80
-     medium border = 160
+     small border = 90
+     medium border = 180
      large border = 200
      in between gap = 15
      margin = 25
      
-     2 small = 160
-     2 medium = 320
+     2 small = 180
+     2 medium = 360
      2 large = 400
      5 gaps = 75
      2 margins = 50
@@ -86,11 +86,11 @@ void COLOURAUMAudioProcessorEditor::resized()
      total width = 1340
      
      */
-    auto leftMarginGap = getWidth() * 0.031;
-    auto borderWidthGap = getWidth() * 0.01492;
-    auto smallBorderWidth = getWidth() * 0.0796;
+    auto leftMarginGap = getWidth() * 0.027;
+    auto borderWidthGap = getWidth() * 0.01408;
+    auto smallBorderWidth = getWidth() * 0.08451;
     auto mediumBorderWidth = smallBorderWidth * 2.0;
-    auto largeBorderWidth = getWidth() * 0.19901;
+    auto largeBorderWidth = getWidth() * 0.1878;
     auto borderHeight = getHeight() *  0.7576;
     auto borderY = getHeight() * 0.164436;
 
