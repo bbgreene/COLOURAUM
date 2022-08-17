@@ -10,6 +10,11 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include "../Source/bbg_gui/Dial.h"
+#include "../Source/bbg_gui/Toggle.h"
+#include "../Source/bbg_gui/PushButton.h"
+#include "../Source/bbg_gui/Menu.h"
+#include "../Source/bbg_gui/Label.h"
 
 //==============================================================================
 /**
@@ -33,6 +38,10 @@ private:
     juce::GroupComponent gateBorder;
     juce::GroupComponent tremoloBorder;
     juce::GroupComponent outBorder;
+    
+    bbg_gui::bbg_dialLabel olumay { "Olumay dsp" };
+    bbg_gui::bbg_dialLabel colouraumTitle { "C O L O U R A U M" };
+    bbg_gui::bbg_dialLabel colouraumVersion { "version 1.1" };
     
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.

@@ -50,6 +50,22 @@ COLOURAUMAudioProcessorEditor::COLOURAUMAudioProcessorEditor (COLOURAUMAudioProc
     outBorder.setTextLabelPosition(juce::Justification::centred);
     outBorder.setText("Output");
     addAndMakeVisible(outBorder);
+    
+    // TITLE
+    colouraumTitle.setFont(juce::Font (26.0f, juce::Font::plain));
+    colouraumTitle.setJustificationType(juce::Justification::centredLeft);
+    colouraumTitle.setColour(juce::Label::textColourId, juce::Colours::mintcream);
+    addAndMakeVisible(colouraumTitle);
+    
+    colouraumVersion.setFont(juce::Font (15.0f, juce::Font::plain));
+    colouraumVersion.setJustificationType(juce::Justification::centredLeft);
+    colouraumVersion.setColour(juce::Label::textColourId, juce::Colours::lightslategrey.brighter());
+    addAndMakeVisible(colouraumVersion);
+    
+    olumay.setFont(juce::Font (15.0f, juce::Font::plain));
+    olumay.setJustificationType(juce::Justification::centredLeft);
+    olumay.setColour(juce::Label::textColourId, juce::Colours::steelblue.brighter());
+    addAndMakeVisible(olumay);
 
     setResizable(false, false);
     setSize (1065, 330);
@@ -100,5 +116,20 @@ void COLOURAUMAudioProcessorEditor::resized()
     gateBorder.setBounds(reverbBorder.getRight() + borderWidthGap, borderY, mediumBorderWidth, borderHeight);
     tremoloBorder.setBounds(gateBorder.getRight() + borderWidthGap, borderY, mediumBorderWidth, borderHeight);
     outBorder.setBounds(tremoloBorder.getRight() + borderWidthGap, borderY, smallBorderWidth, borderHeight);
+    
+    auto colouraumTitleX = leftMarginGap;
+    auto colouraumTitleY = 5;
+    auto colouraumTitleWidth = 207;
+    auto colouraumTitleHeight = 30;
+    auto versionX = 233;
+    auto versionY = 11;
+    auto versionWidth = getWidth() * 0.169246;
+    auto versionHeight = getHeight() * 0.068969;
+    auto olumayX = getWidth() * 0.894;
+    auto olumayY = getHeight() * 0.925818;
+        
+    colouraumTitle.setBounds(colouraumTitleX, colouraumTitleY, colouraumTitleWidth, colouraumTitleHeight);
+    colouraumVersion.setBounds(versionX, versionY, versionWidth, versionHeight);
+    olumay.setBounds(olumayX, olumayY, versionWidth, versionHeight);
 
 }
