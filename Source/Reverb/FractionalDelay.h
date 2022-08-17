@@ -29,7 +29,6 @@ public:
     float processSample(float x, int channel, float gain);
 
     void setFs(float Fs);
-
     void setDelaySamples(float delay);
 
     void setSpeed(float speed);

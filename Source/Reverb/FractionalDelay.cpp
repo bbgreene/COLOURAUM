@@ -22,6 +22,7 @@ FractionalDelay::FractionalDelay(float delay, float speed) {
 FractionalDelay::~FractionalDelay() {
 }
 
+
 float FractionalDelay::processSample(float x, int channel, float gain) {
 
     if (delay < 1.f) {

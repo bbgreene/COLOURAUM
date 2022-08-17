@@ -259,18 +259,23 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     
     //prep
     highPassFilter.prepare(spec);
+    highPassFilter.reset();
     lowPassFilter.prepare(spec);
+    lowPassFilter.reset();
     earlyLowPassFilter.prepare(spec);
-    reverbModule.prepare(spec);
-    gateModule.prepare(spec);
-    mixModule.prepare(spec);
+    earlyLowPassFilter.reset();
     earlyMixModule.prepare(spec);
+    earlyMixModule.reset();
+    reverbModule.prepare(spec);
+    reverbModule.reset();
+    gateModule.prepare(spec);
+    gateModule.reset();
+    mixModule.prepare(spec);
+    mixModule.reset();
     
     depthOne.reset(sampleRate, 0.001);
     freqOne.reset(sampleRate, 0.0001);
     lfoOnePhase.reset(sampleRate, 0.001);
-    earlyTimesSelection(static_cast<int>(erSelection));
-    earlyReflectionsPrep();
     earlyA.setFs(sampleRate);
     earlyA.setDelaySamples(0.0f);
     earlyB.setFs(sampleRate);
@@ -285,7 +290,10 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     earlyF.setDelaySamples(0.0f);
     predelay.setFs(sampleRate);
     predelay.setDelaySamples(0.0f);
+    predelay.clear();
     predelayMS.reset(sampleRate, 0.0001);
+    earlyTimesSelection(static_cast<int>(erSelection));
+    earlyReflectionsPrep();
     
     predelayMS.setCurrentAndTargetValue(treeState.getRawParameterValue("predelay")->load());
     erSelection = treeState.getRawParameterValue("er type")->load();
