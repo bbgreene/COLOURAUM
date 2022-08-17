@@ -95,9 +95,9 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     auto pEarlyOnOff = std::make_unique<juce::AudioParameterBool> ("er", "ER", true);
     auto pEarlySelection = std::make_unique<juce::AudioParameterInt>("er type", "ER Type", 0, 5, 0);
     auto pEarlyMix = std::make_unique<juce::AudioParameterFloat> ("er mix", "ER Mix", 0.0, 1.0, 0.5);
-    auto pPredelay = std::make_unique<juce::AudioParameterFloat> ("predelay", "Predelay", juce::NormalisableRange<float>(0.0, 200.0, 1.0, 1.0), 0.0);
+    auto pPredelay = std::make_unique<juce::AudioParameterFloat> ("predelay", "Predelay", juce::NormalisableRange<float>(0.0, 200.0, 0.01, 1.0), 0.0);
     auto pPreSpeed = std::make_unique<juce::AudioParameterFloat> ("er speed", "ER Speed", 0.0, 200.0, 0.01);
-    auto pPreDepth = std::make_unique<juce::AudioParameterFloat> ("er depth", "ER Depth", 0.0, 1000.0, 0.01);
+    auto pPreDepth = std::make_unique<juce::AudioParameterFloat> ("er depth", "ER Depth", 0.0, 1000.0, 0.00);
     auto pSize = std::make_unique<juce::AudioParameterFloat> ("size", "Size", 0.0, 1.0, 0.45);
     auto pDamp = std::make_unique<juce::AudioParameterFloat> ("damp", "Damp", 0.0, 1.0, 0.97);
     auto pWidth = std::make_unique<juce::AudioParameterFloat> ("width", "Width", 0.0, 1.0, 0.55);
@@ -170,8 +170,6 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
 
 void COLOURAUMAudioProcessor::parameterChanged(const juce::String &parameterID, float newValue)
 {
-    
-    
     predelayMS.setTargetValue(treeState.getRawParameterValue("predelay")->load());
     myDepthOnePercentage = treeState.getRawParameterValue("lfo one depth")->load(); //getting 0 - 100 from dial
     myDepthOne = juce::jmap(myDepthOnePercentage, 0.0f, 100.0f, 0.0f, 1.0f); // converting to 0 - 1
@@ -287,7 +285,7 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     earlyF.setDelaySamples(0.0f);
     predelay.setFs(sampleRate);
     predelay.setDelaySamples(0.0f);
-    predelayMS.reset(sampleRate, 0.002);
+    predelayMS.reset(sampleRate, 0.0001);
     
     predelayMS.setCurrentAndTargetValue(treeState.getRawParameterValue("predelay")->load());
     erSelection = treeState.getRawParameterValue("er type")->load();
@@ -418,8 +416,8 @@ void COLOURAUMAudioProcessor::earlyReflectionsPrep()
 
 void COLOURAUMAudioProcessor::preDelayProcesing(juce::dsp::AudioBlock<float>& block)
 {
-    predelay.setDepth(0.0);
-    predelay.setSpeed(0.0);
+//    predelay.setDepth(erDepth);
+//    predelay.setSpeed(erSpeed);
     float predelaySec = predelayMS.getNextValue() * 0.001;
     float predelaySamples = predelaySec * Fs;
     predelay.setDelaySamples(predelaySamples);
@@ -665,7 +663,6 @@ void COLOURAUMAudioProcessor::updateParams()
     earlyOnOff = treeState.getRawParameterValue("er")->load();
     earlyLowPassFilter.setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
     earlyLowPassFilter.setCutoffFrequency(earlyFilterValue);
-    DBG(earlyFilterValue);
     earlyMixModule.setWetMixProportion(treeState.getRawParameterValue("er mix")->load());
     erSpeed = treeState.getRawParameterValue("er speed")->load();
     erDepth = treeState.getRawParameterValue("er depth")->load();
