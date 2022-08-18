@@ -39,12 +39,20 @@ private:
     bbg_gui::bbg_Dial earlyRate { "", 0.0, 200.0, 0.1, 0.0, 0.0 };
     bbg_gui::bbg_Dial earlyDepth { "", 0.0, 100.0, 0.1, 0.0, 0.0 };
     bbg_gui::bbg_Dial size { "", 0.0, 1.0, 0.01, 0.2, 0.0 };
+    bbg_gui::bbg_PushButton freeze { "Freeze" };
     bbg_gui::bbg_Dial predelay { "", 0.0, 200.0, 0.01, 0.0, 0.0 };
     bbg_gui::bbg_Dial damp { "", 0.0, 1.0, 0.01, 0.0, 0.0 };
+    bbg_gui::bbg_PushButton GateOnOffButton { "On" };
     bbg_gui::bbg_Dial threshold { "", -20.0, 0.0, 0.1, 0.0, 0.0 };
     bbg_gui::bbg_Dial ratio { "", 1.0, 5.0, 0.01, 0.0, 0.0 };
     bbg_gui::bbg_Dial attack { "", 1.0, 1000.0, 0.01, 0.0, 0.0 };
     bbg_gui::bbg_Dial release { "", 1.0, 3000.0, 0.01, 0.0, 0.0 };
+    bbg_gui::bbg_PushButton sineButton { "Sine" };
+    bbg_gui::bbg_PushButton triButton { "Triangle" };
+    bbg_gui::bbg_PushButton squareButton { "Square" };
+    bbg_gui::bbg_PushButton ringButton { "Ring" };
+    bbg_gui::bbg_PushButton tremOnOffButton { "On" };
+    bbg_gui::bbg_PushButton tremPrePostButton { "Pre" };
     bbg_gui::bbg_Dial tremoRate { "", 0.0, 100.0, 0.01, 0.0, 0.0 };
     bbg_gui::bbg_Dial tremoDepth { "", 0.0, 100.0, 0.1, 0.0, 0.0 };
     bbg_gui::bbg_Dial mix { "", 0.0, 1.0, 0.01, 0.0, 0.0 };
@@ -64,6 +72,7 @@ private:
     bbg_gui::bbg_dialLabel ratioLabel { "Ratio" };
     bbg_gui::bbg_dialLabel attackLabel { "Attack" };
     bbg_gui::bbg_dialLabel releaseLabel { "Release" };
+    bbg_gui::bbg_menuLabel waveLabel { "Wave" };
     bbg_gui::bbg_dialLabel tremoRateLabel { "Rate" };
     bbg_gui::bbg_dialLabel tremoDepthLabel { "Depth" };
     bbg_gui::bbg_dialLabel mixLabel { "Mix" };

@@ -34,10 +34,13 @@ COLOURAUMAudioProcessorEditor::COLOURAUMAudioProcessorEditor (COLOURAUMAudioProc
     addAndMakeVisible(earlyDepth);
     size.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
     addAndMakeVisible(size);
+    freeze.setClickingTogglesState(true);
+    addAndMakeVisible(freeze);
     predelay.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
     addAndMakeVisible(predelay);
     damp.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
     addAndMakeVisible(damp);
+    addAndMakeVisible(GateOnOffButton);
     threshold.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
     addAndMakeVisible(threshold);
     ratio.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
@@ -46,6 +49,26 @@ COLOURAUMAudioProcessorEditor::COLOURAUMAudioProcessorEditor (COLOURAUMAudioProc
     addAndMakeVisible(attack);
     release.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
     addAndMakeVisible(release);
+    
+    addAndMakeVisible(tremOnOffButton);
+    addAndMakeVisible(tremPrePostButton);
+    
+    sineButton.setClickingTogglesState(true);
+    sineButton.setRadioGroupId(1);
+    addAndMakeVisible(sineButton);
+    
+    triButton.setClickingTogglesState(true);
+    triButton.setRadioGroupId(1);
+    addAndMakeVisible(triButton);
+    
+    squareButton.setClickingTogglesState(true);
+    squareButton.setRadioGroupId(1);
+    addAndMakeVisible(squareButton);
+    
+    ringButton.setClickingTogglesState(true);
+    ringButton.setRadioGroupId(1);
+    addAndMakeVisible(ringButton);
+
     tremoRate.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
     addAndMakeVisible(tremoRate);
     tremoDepth.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
@@ -70,6 +93,7 @@ COLOURAUMAudioProcessorEditor::COLOURAUMAudioProcessorEditor (COLOURAUMAudioProc
     ratioLabel.attachToComponent(&ratio, false);
     attackLabel.attachToComponent(&attack, false);
     releaseLabel.attachToComponent(&release, false);
+    waveLabel.attachToComponent(&sineButton, false);
     tremoRateLabel.attachToComponent(&tremoRate, false);
     tremoDepthLabel.attachToComponent(&tremoDepth, false);
     mixLabel.attachToComponent(&mix, false);
@@ -129,7 +153,7 @@ COLOURAUMAudioProcessorEditor::COLOURAUMAudioProcessorEditor (COLOURAUMAudioProc
     addAndMakeVisible(olumay);
 
     setResizable(false, false);
-    setSize (1065, 330);
+    setSize (900, 330);
 }
 
 COLOURAUMAudioProcessorEditor::~COLOURAUMAudioProcessorEditor()
@@ -197,6 +221,9 @@ void COLOURAUMAudioProcessorEditor::resized()
     auto bigDialSize = getWidth() * 0.102412;
     auto erTypeWidth = getWidth() * 0.095;
     auto erTypeHeight = getHeight() * 0.109492;
+    auto waveButtonWidth = getWidth() * 0.0660485;
+    auto waveButtonHeight = getHeight() * 0.073715;
+    auto onOffButtonWidth = getWidth() * 0.0437792;
     auto topRowY = getHeight() * 0.313055;
     auto bottomRowY = getHeight() * 0.634681;
 
@@ -207,9 +234,19 @@ void COLOURAUMAudioProcessorEditor::resized()
     auto earlyModParamsX = earlyReflectionsBorder.getX() * 1.859;
     auto sizeX = reverbBorder.getX() * 1.03;
     auto sizeY = reverbBorder.getY() * 1.91164;
+    auto freezeX = reverbBorder.getX() * 1.03457;
+    auto freezeY = reverbBorder.getY() * 4.30707;
     auto predelayDampX = reverbBorder.getX() * 1.343;
+    auto gateOnOffX = gateBorder.getX() * 1.00501;
+    auto gateOnOffY = gateBorder.getY() * 0.632637;
     auto thresRatioX = gateBorder.getX() * 1.03;
     auto attRelX = gateBorder.getX() * 1.17;
+    auto tremOnOffX = tremoloBorder.getX() * 1.003;
+    auto tremOnOffY = tremoloBorder.getY() * 0.632637;
+    auto tremPrePostX = tremoloBorder.getX() * 1.177;
+    auto waveButtonX = tremoloBorder.getX() * 1.02546;
+    auto waveButtonY = tremoloBorder.getY() * 2.29699;
+    auto waveButtonGapY = tremoloBorder.getY() * 0.263916;
     auto tremoRateDepthX = tremoloBorder.getX() * 1.125;
     auto mixWidthX = outBorder.getX() * 1.01;
     
@@ -222,14 +259,22 @@ void COLOURAUMAudioProcessorEditor::resized()
     earlyDepth.setBounds(earlyModParamsX, bottomRowY, smallDialSize, smallDialSize);
     
     size.setBounds(sizeX, sizeY, bigDialSize, bigDialSize);
+    freeze.setBounds(freezeX, freezeY, erTypeWidth, erTypeHeight);
     predelay.setBounds(predelayDampX, topRowY, smallDialSize, smallDialSize);
     damp.setBounds(predelayDampX, bottomRowY, smallDialSize, smallDialSize);
     
+    GateOnOffButton.setBounds(gateOnOffX, gateOnOffY, onOffButtonWidth, waveButtonHeight);
     threshold.setBounds(thresRatioX, topRowY, smallDialSize, smallDialSize);
     ratio.setBounds(thresRatioX, bottomRowY, smallDialSize, smallDialSize);
     attack.setBounds(attRelX, topRowY, smallDialSize, smallDialSize);
     release.setBounds(attRelX, bottomRowY, smallDialSize, smallDialSize);
     
+    tremOnOffButton.setBounds(tremOnOffX, tremOnOffY, onOffButtonWidth, waveButtonHeight);
+    tremPrePostButton.setBounds(tremPrePostX, tremOnOffY, onOffButtonWidth, waveButtonHeight);
+    sineButton.setBounds(waveButtonX, waveButtonY, waveButtonWidth, waveButtonHeight);
+    triButton.setBounds(waveButtonX, sineButton.getBottom() + waveButtonGapY, waveButtonWidth, waveButtonHeight);
+    squareButton.setBounds(waveButtonX, triButton.getBottom() + waveButtonGapY, waveButtonWidth, waveButtonHeight);
+    ringButton.setBounds(waveButtonX, squareButton.getBottom() + waveButtonGapY, waveButtonWidth, waveButtonHeight);
     tremoRate.setBounds(tremoRateDepthX, topRowY, smallDialSize, smallDialSize);
     tremoDepth.setBounds(tremoRateDepthX, bottomRowY, smallDialSize, smallDialSize);
     
