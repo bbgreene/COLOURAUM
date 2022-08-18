@@ -20,6 +20,14 @@ COLOURAUMAudioProcessorEditor::COLOURAUMAudioProcessorEditor (COLOURAUMAudioProc
     addAndMakeVisible(lowPass);
     earlyVolume.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
     addAndMakeVisible(earlyVolume);
+    erType.setText("Small Room");
+    erType.addItem("Small Room", 1);
+    erType.addItem("Medium Room", 2);
+    erType.addItem("Large Room", 3);
+    erType.addItem("Hall", 4);
+    erType.addItem("Large Hall", 5);
+    erType.addItem("Huge", 6);
+    addAndMakeVisible(erType);
     earlyRate.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
     addAndMakeVisible(earlyRate);
     earlyDepth.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
@@ -30,16 +38,42 @@ COLOURAUMAudioProcessorEditor::COLOURAUMAudioProcessorEditor (COLOURAUMAudioProc
     addAndMakeVisible(predelay);
     damp.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
     addAndMakeVisible(damp);
+    threshold.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    addAndMakeVisible(threshold);
+    ratio.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    addAndMakeVisible(ratio);
+    attack.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    addAndMakeVisible(attack);
+    release.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    addAndMakeVisible(release);
+    tremoRate.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    addAndMakeVisible(tremoRate);
+    tremoDepth.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    addAndMakeVisible(tremoDepth);
+    
+    mix.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    addAndMakeVisible(mix);
+    width.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    addAndMakeVisible(width);
     
     //DIAL LABEL ATTACHMENTS
     highPassLabel.attachToComponent(&highPass, false);
     lowPassLabel.attachToComponent(&lowPass, false);
     earlyVolumeLabel.attachToComponent(&earlyVolume, false);
+    erTypeLabel.attachToComponent(&erType, false);
     earlyRateLabel.attachToComponent(&earlyRate, false);
     earlyDepthLabel.attachToComponent(&earlyDepth, false);
     sizeLabel.attachToComponent(&size, false);
     predelayLabel.attachToComponent(&predelay, false);
     dampLabel.attachToComponent(&damp, false);
+    thresholdLabel.attachToComponent(&threshold, false);
+    ratioLabel.attachToComponent(&ratio, false);
+    attackLabel.attachToComponent(&attack, false);
+    releaseLabel.attachToComponent(&release, false);
+    tremoRateLabel.attachToComponent(&tremoRate, false);
+    tremoDepthLabel.attachToComponent(&tremoDepth, false);
+    mixLabel.attachToComponent(&mix, false);
+    widthLabel.attachToComponent(&width, false);
     
     // BORDERS
     filterBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::steelblue.brighter());
@@ -161,25 +195,45 @@ void COLOURAUMAudioProcessorEditor::resized()
     
     auto smallDialSize = getWidth() * 0.07;
     auto bigDialSize = getWidth() * 0.102412;
+    auto erTypeWidth = getWidth() * 0.095;
+    auto erTypeHeight = getHeight() * 0.109492;
     auto topRowY = getHeight() * 0.313055;
     auto bottomRowY = getHeight() * 0.634681;
 
     auto filtersX = filterBorder.getX() * 1.32125;
     auto earlyVolumeX = earlyReflectionsBorder.getX() * 1.11316;
+    auto erTypeX = earlyReflectionsBorder.getX() * 1.08;
+    auto erTypeY = earlyReflectionsBorder.getY() * 4.2815;
     auto earlyModParamsX = earlyReflectionsBorder.getX() * 1.859;
     auto sizeX = reverbBorder.getX() * 1.03;
     auto sizeY = reverbBorder.getY() * 1.91164;
     auto predelayDampX = reverbBorder.getX() * 1.343;
+    auto thresRatioX = gateBorder.getX() * 1.03;
+    auto attRelX = gateBorder.getX() * 1.17;
+    auto tremoRateDepthX = tremoloBorder.getX() * 1.125;
+    auto mixWidthX = outBorder.getX() * 1.01;
     
     highPass.setBounds(filtersX, topRowY, smallDialSize, smallDialSize);
     lowPass.setBounds(filtersX, bottomRowY, smallDialSize, smallDialSize);
     
     earlyVolume.setBounds(earlyVolumeX, topRowY, smallDialSize, smallDialSize);
+    erType.setBounds(erTypeX, erTypeY, erTypeWidth, erTypeHeight);
     earlyRate.setBounds(earlyModParamsX, topRowY, smallDialSize, smallDialSize);
     earlyDepth.setBounds(earlyModParamsX, bottomRowY, smallDialSize, smallDialSize);
     
     size.setBounds(sizeX, sizeY, bigDialSize, bigDialSize);
     predelay.setBounds(predelayDampX, topRowY, smallDialSize, smallDialSize);
     damp.setBounds(predelayDampX, bottomRowY, smallDialSize, smallDialSize);
+    
+    threshold.setBounds(thresRatioX, topRowY, smallDialSize, smallDialSize);
+    ratio.setBounds(thresRatioX, bottomRowY, smallDialSize, smallDialSize);
+    attack.setBounds(attRelX, topRowY, smallDialSize, smallDialSize);
+    release.setBounds(attRelX, bottomRowY, smallDialSize, smallDialSize);
+    
+    tremoRate.setBounds(tremoRateDepthX, topRowY, smallDialSize, smallDialSize);
+    tremoDepth.setBounds(tremoRateDepthX, bottomRowY, smallDialSize, smallDialSize);
+    
+    mix.setBounds(mixWidthX, topRowY, smallDialSize, smallDialSize);
+    width.setBounds(mixWidthX, bottomRowY, smallDialSize, smallDialSize);
 
 }
