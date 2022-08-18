@@ -63,6 +63,7 @@ private:
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lowPassAttachment;
     
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> earlyVolumeAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> erTypeAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> earlyRateAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> earlyDepthAttachment;
     

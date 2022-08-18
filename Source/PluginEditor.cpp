@@ -30,6 +30,7 @@ COLOURAUMAudioProcessorEditor::COLOURAUMAudioProcessorEditor (COLOURAUMAudioProc
     erType.addItem("Hall", 4);
     erType.addItem("Large Hall", 5);
     erType.addItem("Huge", 6);
+    erTypeAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(audioProcessor.treeState, "er type", erType);
     addAndMakeVisible(erType);
     earlyRate.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
     addAndMakeVisible(earlyRate);
