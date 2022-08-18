@@ -80,8 +80,8 @@ private:
     float myDepthOne;
     
     //Early Reflections
-    bool earlyOnOff { false };
     FractionalDelay earlyA, earlyB, earlyC, earlyD , earlyE, earlyF;
+    float erMixValue;
     juce::dsp::DryWetMixer<float> earlyMixModule;
     int erSelection { 0 };
     void earlyTimesSelection(int selection);
@@ -106,7 +106,9 @@ private:
     void preDelayProcesing(juce::dsp::AudioBlock<float>& block);
     
     //Reverb and params
-    bool reverbOnOff { true };
+    float sizeValue;
+    float dampValue;
+    float widthValue;
     bbg_dsp::ReverbUtilities::Parameters reverbParams;
     bbg_dsp::Reverb reverbModule;
     
@@ -115,6 +117,7 @@ private:
     juce::dsp::NoiseGate<float> gateModule;
     
     //Main mix
+    float mainMixValue;
     juce::dsp::DryWetMixer<float> mixModule;
     
     //Functions for param layout and changes

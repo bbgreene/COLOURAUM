@@ -15,10 +15,13 @@ COLOURAUMAudioProcessorEditor::COLOURAUMAudioProcessorEditor (COLOURAUMAudioProc
 {
     // DIALS, BUTTONS, MENUS & PARAMETER ATTACHMENTS
     highPass.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    highPassAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.treeState, "hiPass", highPass);
     addAndMakeVisible(highPass);
     lowPass.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    lowPassAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.treeState, "loPass", lowPass);
     addAndMakeVisible(lowPass);
     earlyVolume.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    earlyVolumeAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.treeState, "er mix", earlyVolume);
     addAndMakeVisible(earlyVolume);
     erType.setText("Small Room");
     erType.addItem("Small Room", 1);
@@ -30,27 +33,40 @@ COLOURAUMAudioProcessorEditor::COLOURAUMAudioProcessorEditor (COLOURAUMAudioProc
     addAndMakeVisible(erType);
     earlyRate.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
     addAndMakeVisible(earlyRate);
+    earlyRateAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.treeState, "er speed", earlyRate);
     earlyDepth.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    earlyDepthAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.treeState, "er depth", earlyDepth);
     addAndMakeVisible(earlyDepth);
     size.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    sizeAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.treeState, "size", size);
     addAndMakeVisible(size);
     freeze.setClickingTogglesState(true);
+    freezeAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(audioProcessor.treeState, "freeze", freeze);
     addAndMakeVisible(freeze);
     predelay.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    predelayAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.treeState, "predelay", predelay);
     addAndMakeVisible(predelay);
     damp.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    dampAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.treeState, "damp", damp);
     addAndMakeVisible(damp);
+    gateAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(audioProcessor.treeState, "gate", GateOnOffButton);
     addAndMakeVisible(GateOnOffButton);
     threshold.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    thresholdAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.treeState, "threshold", threshold);
     addAndMakeVisible(threshold);
     ratio.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    ratioAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.treeState, "ratio", ratio);
     addAndMakeVisible(ratio);
     attack.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    attackAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.treeState, "attack", attack);
     addAndMakeVisible(attack);
     release.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    releaseAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.treeState, "release", release);
     addAndMakeVisible(release);
     
+    tremoloAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(audioProcessor.treeState, "tremolo", tremOnOffButton);
     addAndMakeVisible(tremOnOffButton);
+    tremoloPrePostAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(audioProcessor.treeState, "tremPrePost", tremPrePostButton);
     addAndMakeVisible(tremPrePostButton);
     
     sineButton.setClickingTogglesState(true);
@@ -70,13 +86,17 @@ COLOURAUMAudioProcessorEditor::COLOURAUMAudioProcessorEditor (COLOURAUMAudioProc
     addAndMakeVisible(ringButton);
 
     tremoRate.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    tremoRateAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.treeState, "lfo one rate", tremoRate);
     addAndMakeVisible(tremoRate);
     tremoDepth.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    tremoDepthAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.treeState, "lfo one depth", tremoDepth);
     addAndMakeVisible(tremoDepth);
     
     mix.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    mixAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.treeState, "main mix", mix);
     addAndMakeVisible(mix);
     width.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
+    widthAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.treeState, "width", width);
     addAndMakeVisible(width);
     
     //DIAL LABEL ATTACHMENTS
@@ -153,7 +173,7 @@ COLOURAUMAudioProcessorEditor::COLOURAUMAudioProcessorEditor (COLOURAUMAudioProc
     addAndMakeVisible(olumay);
 
     setResizable(false, false);
-    setSize (900, 330);
+    setSize (1065, 330);
 }
 
 COLOURAUMAudioProcessorEditor::~COLOURAUMAudioProcessorEditor()
@@ -184,7 +204,7 @@ void COLOURAUMAudioProcessorEditor::resized()
      5 gaps = 75
      2 margins = 50
      
-     total width = 1340
+     total width = 1065
      
      */
     auto leftMarginGap = getWidth() * 0.027;

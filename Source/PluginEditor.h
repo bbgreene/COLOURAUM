@@ -34,13 +34,13 @@ private:
     // DIALS, BUTTONS AND MENUS
     bbg_gui::bbg_Dial highPass { "", 20, 2000.0, 1.0, 20.0, 0.0 };
     bbg_gui::bbg_Dial lowPass { "", 5000.0, 20000.0, 1.0, 20000.0, 0.0 };
-    bbg_gui::bbg_Dial earlyVolume { "", 0.0, 1.0, 0.01, 0.5, 0.0 };
+    bbg_gui::bbg_Dial earlyVolume { "", 0.0, 100.0, 0.01, 50.0, 0.0 };
     bbg_gui::bbg_Menu erType;
     bbg_gui::bbg_Dial earlyRate { "", 0.0, 200.0, 0.1, 0.0, 0.0 };
     bbg_gui::bbg_Dial earlyDepth { "", 0.0, 100.0, 0.1, 0.0, 0.0 };
-    bbg_gui::bbg_Dial size { "", 0.0, 1.0, 0.01, 0.2, 0.0 };
+    bbg_gui::bbg_Dial size { "", 0.0, 100.0, 0.01, 20.0, 0.0 };
     bbg_gui::bbg_PushButton freeze { "Freeze" };
-    bbg_gui::bbg_Dial predelay { "", 0.0, 200.0, 0.01, 0.0, 0.0 };
+    bbg_gui::bbg_Dial predelay { "", 0.0, 200.0, 1.0, 0.0, 0.0 };
     bbg_gui::bbg_Dial damp { "", 0.0, 1.0, 0.01, 0.0, 0.0 };
     bbg_gui::bbg_PushButton GateOnOffButton { "On" };
     bbg_gui::bbg_Dial threshold { "", -20.0, 0.0, 0.1, 0.0, 0.0 };
@@ -55,9 +55,35 @@ private:
     bbg_gui::bbg_PushButton tremPrePostButton { "Pre" };
     bbg_gui::bbg_Dial tremoRate { "", 0.0, 100.0, 0.01, 0.0, 0.0 };
     bbg_gui::bbg_Dial tremoDepth { "", 0.0, 100.0, 0.1, 0.0, 0.0 };
-    bbg_gui::bbg_Dial mix { "", 0.0, 1.0, 0.01, 0.0, 0.0 };
-    bbg_gui::bbg_Dial width { "", 0.0, 1.0, 0.01, 0.0, 0.0 };
+    bbg_gui::bbg_Dial mix { "", 0.0, 100.0, 0.01, 100.0, 0.0 };
+    bbg_gui::bbg_Dial width { "", 0.0, 100.0, 0.01, 100.0, 0.0 };
     
+    // ATTACHMENTS
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> highPassAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lowPassAttachment;
+    
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> earlyVolumeAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> earlyRateAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> earlyDepthAttachment;
+    
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> sizeAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> freezeAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> predelayAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> dampAttachment;
+    
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> gateAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> thresholdAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> ratioAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> attackAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> releaseAttachment;
+    
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> tremoloAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> tremoloPrePostAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> tremoRateAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> tremoDepthAttachment;
+    
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> mixAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> widthAttachment;
     // LABELS
     bbg_gui::bbg_dialLabel highPassLabel { "High" };
     bbg_gui::bbg_dialLabel lowPassLabel { "Low" };

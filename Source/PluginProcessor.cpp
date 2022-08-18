@@ -22,21 +22,17 @@ COLOURAUMAudioProcessor::COLOURAUMAudioProcessor()
                        ), treeState(*this, nullptr, "PARAMETERS", createParameterLayout())
 #endif
 {
-    treeState.addParameterListener("filters", this);
     treeState.addParameterListener("hiPass", this);
     treeState.addParameterListener("loPass", this);
-    treeState.addParameterListener("reverb", this);
-    treeState.addParameterListener("er", this);
-    treeState.addParameterListener("er type", this);
     treeState.addParameterListener("er mix", this);
-    treeState.addParameterListener("predelay", this);
+    treeState.addParameterListener("er type", this);
     treeState.addParameterListener("er speed", this);
     treeState.addParameterListener("er depth", this);
     treeState.addParameterListener("size", this);
-    treeState.addParameterListener("damp", this);
-    treeState.addParameterListener("width", this);
-    treeState.addParameterListener("blend", this);
     treeState.addParameterListener("freeze", this);
+    treeState.addParameterListener("predelay", this);
+    treeState.addParameterListener("damp", this);
+    treeState.addParameterListener("blend", this);
     treeState.addParameterListener("gate", this);
     treeState.addParameterListener("threshold", this);
     treeState.addParameterListener("ratio", this);
@@ -48,25 +44,22 @@ COLOURAUMAudioProcessor::COLOURAUMAudioProcessor()
     treeState.addParameterListener("lfo one depth", this);
     treeState.addParameterListener("lfo one rate", this);
     treeState.addParameterListener("main mix", this);
+    treeState.addParameterListener("width", this);
 }
 
 COLOURAUMAudioProcessor::~COLOURAUMAudioProcessor()
 {
-    treeState.removeParameterListener("filters", this);
     treeState.removeParameterListener("hiPass", this);
     treeState.removeParameterListener("loPass", this);
-    treeState.removeParameterListener("reverb", this);
-    treeState.removeParameterListener("er", this);
-    treeState.removeParameterListener("er type", this);
     treeState.removeParameterListener("er mix", this);
-    treeState.removeParameterListener("predelay", this);
+    treeState.removeParameterListener("er type", this);
     treeState.removeParameterListener("er speed", this);
     treeState.removeParameterListener("er depth", this);
     treeState.removeParameterListener("size", this);
-    treeState.removeParameterListener("damp", this);
-    treeState.removeParameterListener("width", this);
-    treeState.removeParameterListener("blend", this);
     treeState.removeParameterListener("freeze", this);
+    treeState.removeParameterListener("predelay", this);
+    treeState.removeParameterListener("damp", this);
+    treeState.removeParameterListener("blend", this);
     treeState.removeParameterListener("gate", this);
     treeState.removeParameterListener("threshold", this);
     treeState.removeParameterListener("ratio", this);
@@ -78,6 +71,7 @@ COLOURAUMAudioProcessor::~COLOURAUMAudioProcessor()
     treeState.removeParameterListener("lfo one depth", this);
     treeState.removeParameterListener("lfo one rate", this);
     treeState.removeParameterListener("main mix", this);
+    treeState.removeParameterListener("width", this);
 }
 
 juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::createParameterLayout()
@@ -87,28 +81,94 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     //LFO One waveform names
     juce::StringArray waveformSelector = {"Sine", "Triangle", "Sloped Square", "Ring"};
     
-    auto pFiltersOnOff = std::make_unique<juce::AudioParameterBool> ("filters", "Filters", false);
-    auto pHighPassFreq = std::make_unique<juce::AudioParameterFloat> ("hiPass", "HiPass", 20.0, 2000.0, 20.0);
-    auto pLowPassFreq = std::make_unique<juce::AudioParameterFloat> ("loPass", "LoPass", 5000.0, 20000.0, 20000.0);
+    auto pHighPassFreq = std::make_unique<juce::AudioParameterFloat>("hiPass", "HiPass",
+                                                                    juce::NormalisableRange<float> (20.0, 2000.0, 1.0, 0.45), 20.0,
+                                                                    juce::String(),
+                                                                    juce::AudioProcessorParameter::genericParameter,
+                                                                    [](float value, int) {return (value < 1000.0) ? juce::String (value, 0) + " Hz" : juce::String (value / 1000.0f, 2) + " kHz";},
+                                                                    [](juce::String text) {return text.dropLastCharacters (3).getFloatValue();});;
     
-    auto pReverbOnOff = std::make_unique<juce::AudioParameterBool> ("reverb", "Reverb", true);
-    auto pEarlyOnOff = std::make_unique<juce::AudioParameterBool> ("er", "ER", true);
+    auto pLowPassFreq = std::make_unique<juce::AudioParameterFloat>("loPass", "LoPass", juce::NormalisableRange<float> (5000.0, 20000.0, 1.0, 0.45), 20000.0,
+                                                                    juce::String(),
+                                                                    juce::AudioProcessorParameter::genericParameter,
+                                                                    [](float value, int) {return (value < 10000.0) ? juce::String (value / 1000.0f, 2) + " kHz" : juce::String (value / 1000.0f, 1) + " kHz";},
+                                                                    [](juce::String text) {return text.dropLastCharacters (3).getFloatValue();});
+    
+    auto pEarlyMix = std::make_unique<juce::AudioParameterFloat> ("er mix", "ER Mix", juce::NormalisableRange<float> (0.0, 100.0, 0.01, 1.0),
+                                                                  50.0,
+                                                                  juce::String(),
+                                                                  juce::AudioProcessorParameter::genericParameter,
+                                                                  [](float value, int) {return (value < 100.0) ? juce::String (value, 1) + " %" : juce::String (value, 0) + " %";},
+                                                                  [](juce::String text) {return text.dropLastCharacters (3).getFloatValue();});
+    
     auto pEarlySelection = std::make_unique<juce::AudioParameterInt>("er type", "ER Type", 0, 5, 0);
-    auto pEarlyMix = std::make_unique<juce::AudioParameterFloat> ("er mix", "ER Mix", 0.0, 1.0, 0.5);
-    auto pPredelay = std::make_unique<juce::AudioParameterFloat> ("predelay", "Predelay", juce::NormalisableRange<float>(0.0, 200.0, 0.01, 1.0), 0.0);
-    auto pPreSpeed = std::make_unique<juce::AudioParameterFloat> ("er speed", "ER Speed", 0.0, 200.0, 0.01);
-    auto pPreDepth = std::make_unique<juce::AudioParameterFloat> ("er depth", "ER Depth", 0.0, 1000.0, 0.00);
-    auto pSize = std::make_unique<juce::AudioParameterFloat> ("size", "Size", 0.0, 1.0, 0.45);
-    auto pDamp = std::make_unique<juce::AudioParameterFloat> ("damp", "Damp", 0.0, 1.0, 0.97);
-    auto pWidth = std::make_unique<juce::AudioParameterFloat> ("width", "Width", 0.0, 1.0, 0.55);
-    auto pBlend = std::make_unique<juce::AudioParameterFloat> ("blend", "Blend", 0.0, 1.0, 0.5); // reverb wet
+    
+    auto pERSpeed = std::make_unique<juce::AudioParameterFloat> ("er speed", "ER Speed", juce::NormalisableRange<float>(0.01, 100.0, 0.01, 0.4),
+                                                                 0.01,
+                                                                 juce::String(),
+                                                                 juce::AudioProcessorParameter::genericParameter,
+                                                                 [](float value, int) {return (value < 10.0f) ? juce::String (value, 2) + " Hz" : ((value == 100.0f) ? juce::String (value, 0) + " Hz" : juce::String (value, 1) + " Hz" );},
+                                                                 [](juce::String text) {return text.dropLastCharacters (3).getFloatValue();});
+    
+    auto pERDepth = std::make_unique<juce::AudioParameterFloat> ("er depth", "ER Depth", juce::NormalisableRange<float> (0.0, 100.0, 0.01, 1.0),
+                                                                 0.0,
+                                                                 juce::String(),
+                                                                 juce::AudioProcessorParameter::genericParameter,
+                                                                 [](float value, int) {return (value < 100.0) ? juce::String (value, 1) + " %" : juce::String (value, 0) + " %";},
+                                                                 [](juce::String text) {return text.dropLastCharacters (3).getFloatValue();});
+    
+    
+    auto pSize = std::make_unique<juce::AudioParameterFloat> ("size", "Size", juce::NormalisableRange<float> (0.0, 100.0, 0.01, 1.0),
+                                                              20.0,
+                                                              juce::String(),
+                                                              juce::AudioProcessorParameter::genericParameter,
+                                                              [](float value, int) {return (value < 100.0) ? juce::String (value, 1) + " %" : juce::String (value, 0) + " %";},
+                                                              [](juce::String text) {return text.dropLastCharacters (3).getFloatValue();});
+
     auto pFreeze = std::make_unique<juce::AudioParameterBool> ("freeze", "Freeze", false);
     
+    auto pPredelay = std::make_unique<juce::AudioParameterFloat> ("predelay", "Predelay", juce::NormalisableRange<float>(0.0, 200.0, 1.0, 1.0),
+                                                                  0.0,
+                                                                  juce::String(),
+                                                                  juce::AudioProcessorParameter::genericParameter,
+                                                                  [](float value, int) {return juce::String (value, 0) + " ms";},
+                                                                  [](juce::String text) {return text.dropLastCharacters (3).getFloatValue();});
+    
+    
+    auto pDamp = std::make_unique<juce::AudioParameterFloat> ("damp", "Damp", juce::NormalisableRange<float> (0.0, 100.0, 0.01, 1.0),
+                                                              20.0,
+                                                              juce::String(),
+                                                              juce::AudioProcessorParameter::genericParameter,
+                                                              [](float value, int) {return (value < 100.0) ? juce::String (value, 1) + " %" : juce::String (value, 0) + " %";},
+                                                              [](juce::String text) {return text.dropLastCharacters (3).getFloatValue();});
+    
     auto pGateOnOff = std::make_unique<juce::AudioParameterBool> ("gate", "Gate", false);
-    auto pThres = std::make_unique<juce::AudioParameterFloat> ("threshold", "Threshold", -20.0, 0.0, 0.0);
-    auto pRatio = std::make_unique<juce::AudioParameterFloat> ("ratio", "Ratio", 1.0, 5.0, 1.0);
-    auto pAtt = std::make_unique<juce::AudioParameterFloat> ("attack", "Attack", 1.0, 1000.0, 1.0);
-    auto pRel = std::make_unique<juce::AudioParameterFloat> ("release", "Release", 1.0, 3000.0, 1.0);
+    auto pThres = std::make_unique<juce::AudioParameterFloat> ("threshold", "Threshold", juce::NormalisableRange<float> (-20.0, 0.0, 0.1, 1.0),
+                                                               0.0,
+                                                               juce::String(),
+                                                               juce::AudioProcessorParameter::genericParameter,
+                                                               [](float value, int) {return juce::String (value, 1) + " dB";},
+                                                               [](juce::String text) {return text.dropLastCharacters (3).getFloatValue();});
+    
+    auto pRatio = std::make_unique<juce::AudioParameterFloat> ("ratio", "Ratio", juce::NormalisableRange<float>(1.0, 5.0, 0.01, 1.0),
+                                                               1.0,
+                                                               juce::String(),
+                                                               juce::AudioProcessorParameter::genericParameter,
+                                                               [](float value, int) {return (value == 1.0) ? juce::String (value, 0) + ":1" :  juce::String (value, 1) + ":1";},
+                                                               [](juce::String text) {return text.dropLastCharacters (3).getFloatValue();});
+    auto pAtt = std::make_unique<juce::AudioParameterFloat> ("attack", "Attack", juce::NormalisableRange<float>(1.0, 1000.0, 1.0, 1.0),
+                                                             20.0,
+                                                             juce::String(),
+                                                             juce::AudioProcessorParameter::genericParameter,
+                                                             [](float value, int) {return juce::String (value, 0) + " ms";},
+                                                             [](juce::String text) {return text.dropLastCharacters (3).getFloatValue();});
+    
+    auto pRel = std::make_unique<juce::AudioParameterFloat> ("release", "Release", juce::NormalisableRange<float>(1.0, 3000.0, 1.0, 1.0),
+                                                             300.0,
+                                                             juce::String(),
+                                                             juce::AudioProcessorParameter::genericParameter,
+                                                             [](float value, int) {return juce::String (value, 0) + " ms";},
+                                                             [](juce::String text) {return text.dropLastCharacters (3).getFloatValue();});
     
     auto pTremOnOff = std::make_unique<juce::AudioParameterBool>("tremolo", "Tremolo", true);
     auto pTremPrePost = std::make_unique<juce::AudioParameterBool>("tremPrePost", "TremPrePost", true);
@@ -131,32 +191,37 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
                                                                     [](float value, int) {return (value < 10.0f) ? juce::String (value, 2) + " Hz" : ((value == 100.0f) ? juce::String (value, 0) + " Hz" : juce::String (value, 1) + " Hz" );},
                                                                     [](juce::String text) {return text.dropLastCharacters (3).getFloatValue();});
     
-    auto pMix = std::make_unique<juce::AudioParameterFloat> ("main mix", "Main Mix", 0.0, 1.0, 1.0); // overall mix
+    auto pMix = std::make_unique<juce::AudioParameterFloat> ("main mix", "Main Mix", juce::NormalisableRange<float> (0.0, 100.0, 0.01, 1.0),
+                                                             100.0,
+                                                             juce::String(),
+                                                             juce::AudioProcessorParameter::genericParameter,
+                                                             [](float value, int) {return (value < 100.0) ? juce::String (value, 1) + " %" : juce::String (value, 0) + " %";},
+                                                             [](juce::String text) {return text.dropLastCharacters (3).getFloatValue();});
     
-    params.push_back(std::move(pFiltersOnOff));
+    auto pWidth = std::make_unique<juce::AudioParameterFloat> ("width", "Width", juce::NormalisableRange<float> (0.0, 100.0, 0.01, 1.0),
+                                                               100.0,
+                                                               juce::String(),
+                                                               juce::AudioProcessorParameter::genericParameter,
+                                                               [](float value, int) {return (value < 100.0) ? juce::String (value, 1) + " %" : juce::String (value, 0) + " %";},
+                                                               [](juce::String text) {return text.dropLastCharacters (3).getFloatValue();});
+    auto pBlend = std::make_unique<juce::AudioParameterFloat> ("blend", "Blend", 0.0, 1.0, 1.0); // reverb wet
+    
     params.push_back(std::move(pHighPassFreq));
     params.push_back(std::move(pLowPassFreq));
-    
-    params.push_back(std::move(pReverbOnOff));
-    params.push_back(std::move(pEarlyOnOff));
-    params.push_back(std::move(pEarlySelection));
     params.push_back(std::move(pEarlyMix));
-    params.push_back(std::move(pPredelay));
-    params.push_back(std::move(pPreSpeed));
-    params.push_back(std::move(pPreDepth));
-    
+    params.push_back(std::move(pEarlySelection));
+    params.push_back(std::move(pERSpeed));
+    params.push_back(std::move(pERDepth));
     params.push_back(std::move(pSize));
-    params.push_back(std::move(pDamp));
-    params.push_back(std::move(pWidth));
-    params.push_back(std::move(pBlend));
     params.push_back(std::move(pFreeze));
-    
+    params.push_back(std::move(pPredelay));
+    params.push_back(std::move(pDamp));
+    params.push_back(std::move(pBlend));
     params.push_back(std::move(pGateOnOff));
     params.push_back(std::move(pThres));
     params.push_back(std::move(pRatio));
     params.push_back(std::move(pAtt));
     params.push_back(std::move(pRel));
-    
     params.push_back(std::move(pTremOnOff));
     params.push_back(std::move(pTremPrePost));
     params.push_back(std::move(pWaveform));
@@ -164,6 +229,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     params.push_back(std::move(pFreqOne));
     
     params.push_back(std::move(pMix));
+    params.push_back(std::move(pWidth));
 
     return { params.begin(), params.end() };
 }
@@ -358,13 +424,14 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     
     mixModule.pushDrySamples(input);
     
-    if (filtersOnOff) { highPassFilter.process(context); lowPassFilter.process(context); }
+    highPassFilter.process(context);
+    lowPassFilter.process(context);
     
     if(tremPrePost)
     {
         preDelayProcesing(block);
-        if(earlyOnOff){ earlyReflectionsProcessing(buffer); }
-        if (reverbOnOff) { reverbModule.process(context); }
+        earlyReflectionsProcessing(buffer);
+        reverbModule.process(context);
         if (gateOnOff) { gateModule.process(context); }
         if(tremOnOff) { tremoloProcessing(buffer); }
     }
@@ -372,8 +439,8 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
     {
         if(tremOnOff) { tremoloProcessing(buffer); }
         preDelayProcesing(block);
-        if(earlyOnOff){ earlyReflectionsProcessing(buffer); }
-        if (reverbOnOff) { reverbModule.process(context); }
+        earlyReflectionsProcessing(buffer);
+        reverbModule.process(context);
         if (gateOnOff) { gateModule.process(context); }
     }
     
@@ -660,27 +727,28 @@ void COLOURAUMAudioProcessor::tremoloProcessing(juce::AudioBuffer<float> &buffer
 void COLOURAUMAudioProcessor::updateParams()
 {
     // pre filters
-    filtersOnOff = treeState.getRawParameterValue("filters")->load();
     highPassFilter.setType(juce::dsp::LinkwitzRileyFilterType::highpass);
     highPassFilter.setCutoffFrequency(treeState.getRawParameterValue("hiPass")->load());
     lowPassFilter.setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
     lowPassFilter.setCutoffFrequency(treeState.getRawParameterValue("loPass")->load());
     
     // ERs
-    earlyOnOff = treeState.getRawParameterValue("er")->load();
     earlyLowPassFilter.setType(juce::dsp::LinkwitzRileyFilterType::lowpass);
     earlyLowPassFilter.setCutoffFrequency(earlyFilterValue);
-    earlyMixModule.setWetMixProportion(treeState.getRawParameterValue("er mix")->load());
+    erMixValue = treeState.getRawParameterValue("er mix")->load();
+    earlyMixModule.setWetMixProportion(juce::jmap(erMixValue, 0.0f, 100.0f, 0.0f, 1.0f));
     erSpeed = treeState.getRawParameterValue("er speed")->load();
     erDepth = treeState.getRawParameterValue("er depth")->load();
     
     // reverb
-    reverbOnOff = treeState.getRawParameterValue("reverb")->load();
-    reverbParams.roomSize = treeState.getRawParameterValue("size")->load();
-    reverbParams.damping = treeState.getRawParameterValue("damp")->load();
-    reverbParams.width = treeState.getRawParameterValue("width")->load();
-    reverbParams.wetLevel = treeState.getRawParameterValue("blend")->load();
+    sizeValue = treeState.getRawParameterValue("size")->load();
+    reverbParams.roomSize = juce::jmap(sizeValue, 0.0f, 100.0f, 0.0f, 1.0f);
     reverbParams.freezeMode = treeState.getRawParameterValue("freeze")->load();
+    dampValue = treeState.getRawParameterValue("damp")->load();
+    reverbParams.damping = juce::jmap(dampValue, 0.0f, 100.0f, 0.0f, 1.0f);
+    widthValue = treeState.getRawParameterValue("width")->load();
+    reverbParams.width = juce::jmap(widthValue, 0.0f, 100.0f, 0.0f, 1.0f);
+    reverbParams.wetLevel = treeState.getRawParameterValue("blend")->load();
     reverbModule.setParameters(reverbParams);
     
     //gate
@@ -695,7 +763,8 @@ void COLOURAUMAudioProcessor::updateParams()
     tremPrePost = treeState.getRawParameterValue("tremPrePost")->load();
     
     // Main Mix
-    mixModule.setWetMixProportion(treeState.getRawParameterValue("main mix")->load());
+    mainMixValue = treeState.getRawParameterValue("main mix")->load();
+    mixModule.setWetMixProportion(juce::jmap(mainMixValue, 0.0f, 100.0f, 0.0f, 1.0f));
 }
 
 //==============================================================================
