@@ -64,6 +64,17 @@ private:
     juce::dsp::LinkwitzRileyFilter<float> highPassFilter;
     juce::dsp::LinkwitzRileyFilter<float> lowPassFilter;
     
+    //Tube distortion variables
+    float tubeInPercentage { 0.0 };
+    float tubeInGain { 0.0 };
+    float rawInput { 1.0 };
+    
+    // distortion function and processing
+    void processDistortion(juce::dsp::AudioBlock<float>& block);
+    float tubeData(float samples);
+    
+    // softclip divisor. Creating this constexpr is more efficient than doing 2/pi for every sample in the audio block, because calculated at initialisation
+    static constexpr float piDivisor = 2.0 / juce::MathConstants<float>::pi;
     
     //LFO Variables & functions
     juce::LinearSmoothedValue<float> depthOne { 0.0 };

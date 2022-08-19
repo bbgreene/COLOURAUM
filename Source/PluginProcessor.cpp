@@ -174,7 +174,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     
     auto pTremOnOff = std::make_unique<juce::AudioParameterBool>("tremolo", "Tremolo", true);
     auto pTremPrePost = std::make_unique<juce::AudioParameterBool>("tremPrePost", "TremPrePost", true);
-    auto pTremDist = std::make_unique<juce::AudioParameterFloat> ("distortion", "Distortion", juce::NormalisableRange<float> (0.0, 100.0, 0.01, 1.0),
+    auto pTremDist = std::make_unique<juce::AudioParameterFloat> ("distortion", "Distortion", juce::NormalisableRange<float> (0.0, 100.0, 0.1, 1.0),
                                                              100.0,
                                                              juce::String(),
                                                              juce::AudioProcessorParameter::genericParameter,
@@ -259,6 +259,12 @@ void COLOURAUMAudioProcessor::parameterChanged(const juce::String &parameterID, 
     {
         erSelection = newValue;
         earlyTimesSelection(static_cast<int>(newValue));
+    }
+    if (parameterID == "distortion")
+    {
+        tubeInPercentage = newValue;
+        tubeInGain = juce::jmap(tubeInPercentage, 0.0f, 100.0f, 0.0f, 24.0f); //converting tube percentage to decibels
+        rawInput = juce::Decibels::decibelsToGain(tubeInGain);
     }
     updateParams();
 }
@@ -349,7 +355,7 @@ void COLOURAUMAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBl
     mixModule.prepare(spec);
     mixModule.reset();
     
-    depthOne.reset(sampleRate, 0.001);
+    depthOne.reset(sampleRate, 0.0001);
     freqOne.reset(sampleRate, 0.0001);
     lfoOnePhase.reset(sampleRate, 0.001);
     earlyA.setFs(sampleRate);
@@ -442,16 +448,18 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
         preDelayProcesing(block);
         earlyReflectionsProcessing(buffer);
         reverbModule.process(context);
-        if (gateOnOff) { gateModule.process(context); }
+        if(gateOnOff) { gateModule.process(context); }
+        if(tubeInPercentage > 0.0) { processDistortion(block); }
         if(tremOnOff) { tremoloProcessing(buffer); }
     }
     else
     {
+        if(tubeInPercentage > 0.0) { processDistortion(block); }
         if(tremOnOff) { tremoloProcessing(buffer); }
         preDelayProcesing(block);
         earlyReflectionsProcessing(buffer);
         reverbModule.process(context);
-        if (gateOnOff) { gateModule.process(context); }
+        if(gateOnOff) { gateModule.process(context); }
     }
     
     mixModule.mixWetSamples(output);
@@ -700,6 +708,39 @@ float COLOURAUMAudioProcessor::lfoOne(float phase, int choice)
     }
 }
 
+// distortion process
+void COLOURAUMAudioProcessor::processDistortion(juce::dsp::AudioBlock<float>& block)
+{
+    for(int channel = 0; channel < block.getNumChannels(); ++channel)
+    {
+        auto* data = block.getChannelPointer(channel);
+        
+        for (int sample = 0; sample < block.getNumSamples(); ++sample)
+        {
+            data[sample] = tubeData(data[sample]);
+        }
+    }
+}
+// softclip algorithim (rounded)
+float COLOURAUMAudioProcessor::tubeData(float samples)
+{
+        samples *= rawInput * 1.6;
+        
+        if (samples < 0.0)
+        {
+            samples = piDivisor * std::atan(samples);
+        }
+        else if (std::abs(samples) > 1.0)
+        {
+            // if true then this will output 1 (or -1)
+            samples *= 1.0 / std::abs(samples);
+        }
+        samples = piDivisor * std::atan(samples);
+    
+//    samples = piDivisor * std::atan(samples);
+    return samples;
+}
+
 void COLOURAUMAudioProcessor::tremoloProcessing(juce::AudioBuffer<float> &buffer)
 {
     //LFO One parameters
@@ -769,9 +810,12 @@ void COLOURAUMAudioProcessor::updateParams()
     gateModule.setAttack(treeState.getRawParameterValue("attack")->load());
     gateModule.setRelease(treeState.getRawParameterValue("release")->load());
     
-    //tremolo pre post
+    //tremolo
     tremOnOff = treeState.getRawParameterValue("tremolo")->load();
     tremPrePost = treeState.getRawParameterValue("tremPrePost")->load();
+    tubeInPercentage = treeState.getRawParameterValue("distortion")->load();
+    tubeInGain = juce::jmap(tubeInPercentage, 0.0f, 100.0f, 0.0f, 24.0f); //converting tube percentage to decibels
+    rawInput = juce::Decibels::decibelsToGain(tubeInGain);
     
     // Main Mix
     mainMixValue = treeState.getRawParameterValue("main mix")->load();
