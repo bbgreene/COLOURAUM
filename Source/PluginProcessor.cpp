@@ -625,6 +625,7 @@ void COLOURAUMAudioProcessor::earlyReflectionsProcessing(juce::AudioBuffer<float
     earlyReflectionsPrep();
     // early reflections for loop for stereo placement// no need for channel outer for loop
     float localWidth = treeState.getRawParameterValue("width")->load();
+    localWidth = juce::jmap(localWidth, 0.0f, 100.0f, 0.0f, 1.0f);
     const auto coef_M = 1/std::fmax(1 + localWidth, 2);
     const auto coef_S = localWidth * coef_M;
     
