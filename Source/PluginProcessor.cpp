@@ -40,6 +40,7 @@ COLOURAUMAudioProcessor::COLOURAUMAudioProcessor()
     treeState.addParameterListener("release", this);
     treeState.addParameterListener("tremolo", this);
     treeState.addParameterListener("tremPrePost", this);
+    treeState.addParameterListener("distortion", this);
     treeState.addParameterListener("wave", this);
     treeState.addParameterListener("lfo one depth", this);
     treeState.addParameterListener("lfo one rate", this);
@@ -67,6 +68,7 @@ COLOURAUMAudioProcessor::~COLOURAUMAudioProcessor()
     treeState.removeParameterListener("release", this);
     treeState.removeParameterListener("tremolo", this);
     treeState.removeParameterListener("tremPrePost", this);
+    treeState.removeParameterListener("distortion", this);
     treeState.removeParameterListener("wave", this);
     treeState.removeParameterListener("lfo one depth", this);
     treeState.removeParameterListener("lfo one rate", this);
@@ -172,6 +174,13 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     
     auto pTremOnOff = std::make_unique<juce::AudioParameterBool>("tremolo", "Tremolo", true);
     auto pTremPrePost = std::make_unique<juce::AudioParameterBool>("tremPrePost", "TremPrePost", true);
+    auto pTremDist = std::make_unique<juce::AudioParameterFloat> ("distortion", "Distortion", juce::NormalisableRange<float> (0.0, 100.0, 0.01, 1.0),
+                                                             100.0,
+                                                             juce::String(),
+                                                             juce::AudioProcessorParameter::genericParameter,
+                                                             [](float value, int) {return (value < 100.0) ? juce::String (value, 1) + " %" : juce::String (value, 0) + " %";},
+                                                             [](juce::String text) {return text.dropLastCharacters (3).getFloatValue();});
+    
     auto pWaveform = std::make_unique<juce::AudioParameterChoice>("wave", "Wave", waveformSelector, 0);
     auto pDepthOne = std::make_unique<juce::AudioParameterFloat>("lfo one depth",
                                                                      "LFO 1 Depth",
@@ -224,6 +233,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
     params.push_back(std::move(pRel));
     params.push_back(std::move(pTremOnOff));
     params.push_back(std::move(pTremPrePost));
+    params.push_back(std::move(pTremDist));
     params.push_back(std::move(pWaveform));
     params.push_back(std::move(pDepthOne));
     params.push_back(std::move(pFreqOne));

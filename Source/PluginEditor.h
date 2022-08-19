@@ -47,12 +47,10 @@ private:
     bbg_gui::bbg_Dial ratio { "", 1.0, 5.0, 0.01, 0.0, 0.0 };
     bbg_gui::bbg_Dial attack { "", 1.0, 1000.0, 0.01, 0.0, 0.0 };
     bbg_gui::bbg_Dial release { "", 1.0, 3000.0, 0.01, 0.0, 0.0 };
-    bbg_gui::bbg_PushButton sineButton { "Sine" };
-    bbg_gui::bbg_PushButton triButton { "Triangle" };
-    bbg_gui::bbg_PushButton squareButton { "Square" };
-    bbg_gui::bbg_PushButton ringButton { "Ring" };
+    bbg_gui::bbg_Menu waveMenu;
     bbg_gui::bbg_PushButton tremOnOffButton { "On" };
     bbg_gui::bbg_PushButton tremPrePostButton { "Pre" };
+    bbg_gui::bbg_Dial tremoDistortion { "", 0.0, 100.0, 0.01, 0.0, 0.0 };
     bbg_gui::bbg_Dial tremoRate { "", 0.0, 100.0, 0.01, 0.0, 0.0 };
     bbg_gui::bbg_Dial tremoDepth { "", 0.0, 100.0, 0.1, 0.0, 0.0 };
     bbg_gui::bbg_Dial mix { "", 0.0, 100.0, 0.01, 100.0, 0.0 };
@@ -80,6 +78,8 @@ private:
     
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> tremoloAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ButtonAttachment> tremoloPrePostAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> tremoDistortionAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> waveMenuAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> tremoRateAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> tremoDepthAttachment;
     
@@ -99,6 +99,7 @@ private:
     bbg_gui::bbg_dialLabel ratioLabel { "Ratio" };
     bbg_gui::bbg_dialLabel attackLabel { "Attack" };
     bbg_gui::bbg_dialLabel releaseLabel { "Release" };
+    bbg_gui::bbg_dialLabel tremoDistortionLabel { "Distortion" };
     bbg_gui::bbg_menuLabel waveLabel { "Wave" };
     bbg_gui::bbg_dialLabel tremoRateLabel { "Rate" };
     bbg_gui::bbg_dialLabel tremoDepthLabel { "Depth" };
