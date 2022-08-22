@@ -101,7 +101,7 @@ juce::AudioProcessorValueTreeState::ParameterLayout COLOURAUMAudioProcessor::cre
                                                                   [](float value, int) {return juce::String (value, 0) + " %";},
                                                                   [](juce::String text) {return text.dropLastCharacters (3).getFloatValue();});
     
-    auto pEarlySelection = std::make_unique<juce::AudioParameterInt>("er type", "ER Type", 0, 5, 0);
+    auto pEarlySelection = std::make_unique<juce::AudioParameterInt>("er type", "ER Type", 0, 5, 1);
     
     auto pERSpeed = std::make_unique<juce::AudioParameterFloat> ("er speed", "ER Speed", juce::NormalisableRange<float>(0.01, 100.0, 0.01, 0.4),
                                                                  0.01,
