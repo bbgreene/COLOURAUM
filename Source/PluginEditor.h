@@ -34,27 +34,27 @@ private:
     // DIALS, BUTTONS AND MENUS
     bbg_gui::bbg_Dial highPass { "", 20, 2000.0, 1.0, 20.0, 0.0 };
     bbg_gui::bbg_Dial lowPass { "", 5000.0, 20000.0, 1.0, 20000.0, 0.0 };
-    bbg_gui::bbg_Dial earlyVolume { "", 0.0, 100.0, 0.01, 50.0, 0.0 };
+    bbg_gui::bbg_Dial earlyVolume { "", 0.0, 100.0, 1.0, 50.0, 0.0 };
     bbg_gui::bbg_Menu erType;
     bbg_gui::bbg_Dial earlyRate { "", 0.0, 200.0, 0.1, 0.0, 0.0 };
-    bbg_gui::bbg_Dial earlyDepth { "", 0.0, 100.0, 0.1, 0.0, 0.0 };
-    bbg_gui::bbg_Dial size { "", 0.0, 100.0, 0.01, 20.0, 0.0 };
+    bbg_gui::bbg_Dial earlyDepth { "", 0.0, 100.0, 1.0, 0.0, 0.0 };
+    bbg_gui::bbg_Dial size { "", 1.0, 100.0, 0.01, 40.0, 0.0 };
     bbg_gui::bbg_PushButton freeze { "Freeze" };
     bbg_gui::bbg_Dial predelay { "", 0.0, 200.0, 1.0, 0.0, 0.0 };
-    bbg_gui::bbg_Dial damp { "", 0.0, 1.0, 0.01, 0.0, 0.0 };
+    bbg_gui::bbg_Dial damp { "", 0.0, 100.0, 1.0, 50.0, 0.0 };
     bbg_gui::bbg_PushButton GateOnOffButton { "On" };
     bbg_gui::bbg_Dial threshold { "", -20.0, 0.0, 0.1, 0.0, 0.0 };
-    bbg_gui::bbg_Dial ratio { "", 1.0, 5.0, 0.01, 0.0, 0.0 };
-    bbg_gui::bbg_Dial attack { "", 1.0, 1000.0, 0.01, 0.0, 0.0 };
-    bbg_gui::bbg_Dial release { "", 1.0, 3000.0, 0.01, 0.0, 0.0 };
+    bbg_gui::bbg_Dial ratio { "", 1.0, 5.0, 0.1, 0.0, 0.0 };
+    bbg_gui::bbg_Dial attack { "", 1.0, 200.0, 1.0, 0.0, 0.0 };
+    bbg_gui::bbg_Dial release { "", 1.0, 3000.0, 1.0, 0.0, 0.0 };
     bbg_gui::bbg_Menu waveMenu;
     bbg_gui::bbg_PushButton tremOnOffButton { "On" };
     bbg_gui::bbg_PushButton tremPrePostButton { "Post" };
-    bbg_gui::bbg_Dial tremoDistortion { "", 0.0, 100.0, 0.1, 0.0, 0.0 };
-    bbg_gui::bbg_Dial tremoRate { "", 0.0, 100.0, 0.01, 0.0, 0.0 };
-    bbg_gui::bbg_Dial tremoDepth { "", 0.0, 100.0, 0.1, 0.0, 0.0 };
+    bbg_gui::bbg_Dial tremoDistortion { "", 0.0, 100.0, 1.0, 0.0, 0.0 };
+    bbg_gui::bbg_Dial tremoRate { "", 0.0, 100.0, 0.01, 8.0, 0.0 };
+    bbg_gui::bbg_Dial tremoDepth { "", 0.0, 100.0, 1.0, 10.0, 0.0 };
     bbg_gui::bbg_Dial mix { "", 0.0, 100.0, 0.01, 100.0, 0.0 };
-    bbg_gui::bbg_Dial width { "", 0.0, 100.0, 0.01, 100.0, 0.0 };
+    bbg_gui::bbg_Dial width { "", 0.0, 100.0, 0.01, 80.0, 0.0 };
     
     // ATTACHMENTS
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> highPassAttachment;

@@ -134,37 +134,37 @@ COLOURAUMAudioProcessorEditor::COLOURAUMAudioProcessorEditor (COLOURAUMAudioProc
     
     // BORDERS
     filterBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::purple.brighter());
-    filterBorder.setColour(juce::GroupComponent::ColourIds::textColourId, juce::Colours::whitesmoke);
+    filterBorder.setColour(juce::GroupComponent::ColourIds::textColourId, CustomColours::creamWhite);
     filterBorder.setTextLabelPosition(juce::Justification::centred);
     filterBorder.setText("FILTER");
     addAndMakeVisible(filterBorder);
     
     earlyReflectionsBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::purple.brighter());
-    earlyReflectionsBorder.setColour(juce::GroupComponent::ColourIds::textColourId, juce::Colours::whitesmoke);
+    earlyReflectionsBorder.setColour(juce::GroupComponent::ColourIds::textColourId, CustomColours::creamWhite);
     earlyReflectionsBorder.setTextLabelPosition(juce::Justification::centred);
     earlyReflectionsBorder.setText("EARLY REFLECTIONS");
     addAndMakeVisible(earlyReflectionsBorder);
     
     reverbBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::purple.brighter());
-    reverbBorder.setColour(juce::GroupComponent::ColourIds::textColourId, juce::Colours::whitesmoke);
+    reverbBorder.setColour(juce::GroupComponent::ColourIds::textColourId, CustomColours::creamWhite);
     reverbBorder.setTextLabelPosition(juce::Justification::centred);
     reverbBorder.setText("REVERB");
     addAndMakeVisible(reverbBorder);
     
     gateBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::purple.brighter());
-    gateBorder.setColour(juce::GroupComponent::ColourIds::textColourId, juce::Colours::whitesmoke);
+    gateBorder.setColour(juce::GroupComponent::ColourIds::textColourId, CustomColours::creamWhite);
     gateBorder.setTextLabelPosition(juce::Justification::centred);
     gateBorder.setText("GATE");
     addAndMakeVisible(gateBorder);
     
     tremoloBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::purple.brighter());
-    tremoloBorder.setColour(juce::GroupComponent::ColourIds::textColourId, juce::Colours::whitesmoke);
+    tremoloBorder.setColour(juce::GroupComponent::ColourIds::textColourId, CustomColours::creamWhite);
     tremoloBorder.setTextLabelPosition(juce::Justification::centred);
     tremoloBorder.setText("TREMOLO");
     addAndMakeVisible(tremoloBorder);
     
     outBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::purple.brighter());
-    outBorder.setColour(juce::GroupComponent::ColourIds::textColourId, juce::Colours::whitesmoke);
+    outBorder.setColour(juce::GroupComponent::ColourIds::textColourId, CustomColours::creamWhite);
     outBorder.setTextLabelPosition(juce::Justification::centred);
     outBorder.setText("OUTPUT");
     addAndMakeVisible(outBorder);
@@ -172,7 +172,7 @@ COLOURAUMAudioProcessorEditor::COLOURAUMAudioProcessorEditor (COLOURAUMAudioProc
     // TITLE
     colouraumTitle.setFont(juce::Font (26.0f, juce::Font::plain));
     colouraumTitle.setJustificationType(juce::Justification::centredLeft);
-    colouraumTitle.setColour(juce::Label::textColourId, juce::Colours::lightblue);
+    colouraumTitle.setColour(juce::Label::textColourId, juce::Colours::lightblue.brighter());
     addAndMakeVisible(colouraumTitle);
     
     colouraumVersion.setFont(juce::Font (15.0f, juce::Font::plain));
