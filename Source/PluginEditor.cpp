@@ -23,12 +23,12 @@ COLOURAUMAudioProcessorEditor::COLOURAUMAudioProcessorEditor (COLOURAUMAudioProc
     earlyVolume.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
     earlyVolumeAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.treeState, "er mix", earlyVolume);
     addAndMakeVisible(earlyVolume);
-    erType.setText("Small Room");
-    erType.addItem("Small Room", 1);
-    erType.addItem("Medium Room", 2);
-    erType.addItem("Large Room", 3);
+    erType.setText("Small");
+    erType.addItem("Small", 1);
+    erType.addItem("Medium", 2);
+    erType.addItem("Large", 3);
     erType.addItem("Hall", 4);
-    erType.addItem("Large Hall", 5);
+    erType.addItem("Concert", 5);
     erType.addItem("Huge", 6);
     erTypeAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(audioProcessor.treeState, "er type", erType);
     addAndMakeVisible(erType);
@@ -50,6 +50,11 @@ COLOURAUMAudioProcessorEditor::COLOURAUMAudioProcessorEditor (COLOURAUMAudioProc
     damp.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
     dampAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.treeState, "damp", damp);
     addAndMakeVisible(damp);
+    
+    if(static_cast<int>(GateOnOffButton.getToggleState())) { GateOnOffButton.setButtonText("On"); }
+    else { GateOnOffButton.setButtonText("Off"); }
+    GateOnOffButton.onClick = [this]() { if(static_cast<int>(GateOnOffButton.getToggleState())) { GateOnOffButton.setButtonText("On"); }
+    else { GateOnOffButton.setButtonText("Off"); } };
     gateAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(audioProcessor.treeState, "gate", GateOnOffButton);
     addAndMakeVisible(GateOnOffButton);
     threshold.setDialStyle(bbg_gui::bbg_Dial::DialStyle::kDialModernStyle);
@@ -69,8 +74,18 @@ COLOURAUMAudioProcessorEditor::COLOURAUMAudioProcessorEditor (COLOURAUMAudioProc
     tremoDistortionAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.treeState, "distortion", tremoDistortion);
     addAndMakeVisible(tremoDistortion);
     
+    if(static_cast<int>(tremOnOffButton.getToggleState())) { tremOnOffButton.setButtonText("On"); }
+    else { tremOnOffButton.setButtonText("Off"); }
+    tremOnOffButton.onClick = [this]() { if(static_cast<int>(tremOnOffButton.getToggleState())) { tremOnOffButton.setButtonText("On"); }
+    else { tremOnOffButton.setButtonText("Off"); } };
     tremoloAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(audioProcessor.treeState, "tremolo", tremOnOffButton);
     addAndMakeVisible(tremOnOffButton);
+    
+    if(static_cast<int>(tremPrePostButton.getToggleState())) { tremPrePostButton.setButtonText("Post"); }
+    else { tremPrePostButton.setButtonText("Pre"); }
+    
+    tremPrePostButton.onClick = [this]() { if(static_cast<int>(tremPrePostButton.getToggleState())) { tremPrePostButton.setButtonText("Post"); }
+    else { tremPrePostButton.setButtonText("Pre"); } };
     tremoloPrePostAttachment = std::make_unique<juce::AudioProcessorValueTreeState::ButtonAttachment>(audioProcessor.treeState, "tremPrePost", tremPrePostButton);
     addAndMakeVisible(tremPrePostButton);
     
@@ -118,46 +133,46 @@ COLOURAUMAudioProcessorEditor::COLOURAUMAudioProcessorEditor (COLOURAUMAudioProc
     widthLabel.attachToComponent(&width, false);
     
     // BORDERS
-    filterBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::steelblue.brighter());
+    filterBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::purple.brighter());
     filterBorder.setColour(juce::GroupComponent::ColourIds::textColourId, juce::Colours::whitesmoke);
     filterBorder.setTextLabelPosition(juce::Justification::centred);
-    filterBorder.setText("Filter");
+    filterBorder.setText("FILTER");
     addAndMakeVisible(filterBorder);
     
-    earlyReflectionsBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::steelblue.brighter());
+    earlyReflectionsBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::purple.brighter());
     earlyReflectionsBorder.setColour(juce::GroupComponent::ColourIds::textColourId, juce::Colours::whitesmoke);
     earlyReflectionsBorder.setTextLabelPosition(juce::Justification::centred);
-    earlyReflectionsBorder.setText("Early Reflections");
+    earlyReflectionsBorder.setText("EARLY REFLECTIONS");
     addAndMakeVisible(earlyReflectionsBorder);
     
-    reverbBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::steelblue.brighter());
+    reverbBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::purple.brighter());
     reverbBorder.setColour(juce::GroupComponent::ColourIds::textColourId, juce::Colours::whitesmoke);
     reverbBorder.setTextLabelPosition(juce::Justification::centred);
-    reverbBorder.setText("Reverb");
+    reverbBorder.setText("REVERB");
     addAndMakeVisible(reverbBorder);
     
-    gateBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::steelblue.brighter());
+    gateBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::purple.brighter());
     gateBorder.setColour(juce::GroupComponent::ColourIds::textColourId, juce::Colours::whitesmoke);
     gateBorder.setTextLabelPosition(juce::Justification::centred);
-    gateBorder.setText("Gate");
+    gateBorder.setText("GATE");
     addAndMakeVisible(gateBorder);
     
-    tremoloBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::steelblue.brighter());
+    tremoloBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::purple.brighter());
     tremoloBorder.setColour(juce::GroupComponent::ColourIds::textColourId, juce::Colours::whitesmoke);
     tremoloBorder.setTextLabelPosition(juce::Justification::centred);
-    tremoloBorder.setText("Tremolo");
+    tremoloBorder.setText("TREMOLO");
     addAndMakeVisible(tremoloBorder);
     
-    outBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::steelblue.brighter());
+    outBorder.setColour(juce::GroupComponent::ColourIds::outlineColourId, juce::Colours::purple.brighter());
     outBorder.setColour(juce::GroupComponent::ColourIds::textColourId, juce::Colours::whitesmoke);
     outBorder.setTextLabelPosition(juce::Justification::centred);
-    outBorder.setText("Output");
+    outBorder.setText("OUTPUT");
     addAndMakeVisible(outBorder);
     
     // TITLE
     colouraumTitle.setFont(juce::Font (26.0f, juce::Font::plain));
     colouraumTitle.setJustificationType(juce::Justification::centredLeft);
-    colouraumTitle.setColour(juce::Label::textColourId, juce::Colours::mintcream);
+    colouraumTitle.setColour(juce::Label::textColourId, juce::Colours::lightblue);
     addAndMakeVisible(colouraumTitle);
     
     colouraumVersion.setFont(juce::Font (15.0f, juce::Font::plain));
@@ -171,7 +186,7 @@ COLOURAUMAudioProcessorEditor::COLOURAUMAudioProcessorEditor (COLOURAUMAudioProc
     addAndMakeVisible(olumay);
 
     setResizable(false, false);
-    setSize (1065, 330);
+    setSize (1045, 330);
 }
 
 COLOURAUMAudioProcessorEditor::~COLOURAUMAudioProcessorEditor()
@@ -182,7 +197,7 @@ COLOURAUMAudioProcessorEditor::~COLOURAUMAudioProcessorEditor()
 void COLOURAUMAudioProcessorEditor::paint (juce::Graphics& g)
 {
     juce::Rectangle<int> background = getLocalBounds();
-       g.setGradientFill(juce::ColourGradient::vertical(juce::Colours::mediumpurple, getHeight() - getHeight(), juce::Colours::purple.darker(), getHeight()));
+       g.setGradientFill(juce::ColourGradient::vertical(juce::Colours::purple.darker(), getHeight() - getHeight(), juce::Colours::purple.darker(), getHeight()));
        g.fillRect(background);
 }
 
@@ -197,24 +212,24 @@ void COLOURAUMAudioProcessorEditor::resized()
      margin = 25
      
      2 small = 180
-     2 medium = 360
-     2 large = 400
+     3 medium = 540
+     2 large = 200
      5 gaps = 75
      2 margins = 50
      
-     total width = 1065
+     total width = 1045
      
      */
-    auto leftMarginGap = getWidth() * 0.027;
-    auto borderWidthGap = getWidth() * 0.01408;
-    auto smallBorderWidth = getWidth() * 0.08451;
+    auto leftMarginGap = getWidth() * 0.02393;
+    auto borderWidthGap = getWidth() * 0.01436;
+    auto smallBorderWidth = getWidth() * 0.0862;
     auto mediumBorderWidth = smallBorderWidth * 2.0;
-    auto largeBorderWidth = getWidth() * 0.1878;
+    auto largeBorderWidth = getWidth() * 0.1914;
     auto borderHeight = getHeight() *  0.7576;
     auto borderY = getHeight() * 0.164436;
 
     filterBorder.setBounds(leftMarginGap, borderY, smallBorderWidth, borderHeight);
-    earlyReflectionsBorder.setBounds(filterBorder.getRight() + borderWidthGap, borderY, largeBorderWidth, borderHeight);
+    earlyReflectionsBorder.setBounds(filterBorder.getRight() + borderWidthGap, borderY, mediumBorderWidth, borderHeight);
     reverbBorder.setBounds(earlyReflectionsBorder.getRight() + borderWidthGap, borderY, largeBorderWidth, borderHeight);
     gateBorder.setBounds(reverbBorder.getRight() + borderWidthGap, borderY, mediumBorderWidth, borderHeight);
     tremoloBorder.setBounds(gateBorder.getRight() + borderWidthGap, borderY, mediumBorderWidth, borderHeight);
@@ -237,32 +252,30 @@ void COLOURAUMAudioProcessorEditor::resized()
     
     auto smallDialSize = getWidth() * 0.07;
     auto bigDialSize = getWidth() * 0.102412;
-    auto erTypeWidth = getWidth() * 0.095;
-    auto erTypeHeight = getHeight() * 0.109492;
     auto onOffButtonHeight = getHeight() * 0.073715;
-    auto onOffButtonWidth = getWidth() * 0.0437792;
+    auto onOffButtonWidth = getWidth() * 0.03;
     auto waveMenuWidth = getWidth() * 0.07;
-    auto waveMenuHeight = getHeight() * 0.0660485;
+    auto waveMenuHeight = getHeight() * 0.07;
     auto topRowY = getHeight() * 0.313055;
     auto bottomRowY = getHeight() * 0.634681;
 
     auto filtersX = filterBorder.getX() * 1.32125;
-    auto earlyVolumeX = earlyReflectionsBorder.getX() * 1.11316;
-    auto erTypeX = earlyReflectionsBorder.getX() * 1.08;
+    auto earlyVolumeX = earlyReflectionsBorder.getX() * 1.1;
+    auto erTypeX = earlyReflectionsBorder.getX() * 1.1;
     auto erTypeY = earlyReflectionsBorder.getY() * 4.2815;
-    auto earlyModParamsX = earlyReflectionsBorder.getX() * 1.859;
-    auto sizeX = reverbBorder.getX() * 1.03;
+    auto earlyModParamsX = earlyReflectionsBorder.getX() * 1.7;
+    auto sizeX = reverbBorder.getX() * 1.02;
     auto sizeY = reverbBorder.getY() * 1.91164;
-    auto freezeX = reverbBorder.getX() * 1.03457;
+    auto freezeX = reverbBorder.getX() * 1.07;
     auto freezeY = reverbBorder.getY() * 4.30707;
     auto predelayDampX = reverbBorder.getX() * 1.343;
-    auto gateOnOffX = gateBorder.getX() * 1.00501;
+    auto gateOnOffX = gateBorder.getX() * 1.00428;
     auto gateOnOffY = gateBorder.getY() * 0.632637;
-    auto thresRatioX = gateBorder.getX() * 1.03;
+    auto thresRatioX = gateBorder.getX() * 1.027;
     auto attRelX = gateBorder.getX() * 1.17;
     auto tremOnOffX = tremoloBorder.getX() * 1.003;
     auto tremOnOffY = tremoloBorder.getY() * 0.632637;
-    auto tremPrePostX = tremoloBorder.getX() * 1.177;
+    auto tremPrePostX = tremoloBorder.getX() * 1.2;
     auto waveMenuX = tremoloBorder.getX() * 1.018;
     auto waveMenuY = tremoloBorder.getY() * 4.26691;
     auto tremoDistX = tremoloBorder.getX() * 1.02;
@@ -273,12 +286,12 @@ void COLOURAUMAudioProcessorEditor::resized()
     lowPass.setBounds(filtersX, bottomRowY, smallDialSize, smallDialSize);
     
     earlyVolume.setBounds(earlyVolumeX, topRowY, smallDialSize, smallDialSize);
-    erType.setBounds(erTypeX, erTypeY, erTypeWidth, erTypeHeight);
+    erType.setBounds(erTypeX, erTypeY, waveMenuWidth, waveMenuHeight);
     earlyRate.setBounds(earlyModParamsX, topRowY, smallDialSize, smallDialSize);
     earlyDepth.setBounds(earlyModParamsX, bottomRowY, smallDialSize, smallDialSize);
     
     size.setBounds(sizeX, sizeY, bigDialSize, bigDialSize);
-    freeze.setBounds(freezeX, freezeY, erTypeWidth, erTypeHeight);
+    freeze.setBounds(freezeX, freezeY, waveMenuWidth, waveMenuHeight);
     predelay.setBounds(predelayDampX, topRowY, smallDialSize, smallDialSize);
     damp.setBounds(predelayDampX, bottomRowY, smallDialSize, smallDialSize);
     

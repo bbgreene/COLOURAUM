@@ -449,13 +449,11 @@ void COLOURAUMAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, ju
         earlyReflectionsProcessing(buffer);
         reverbModule.process(context);
         if(gateOnOff) { gateModule.process(context); }
-        if(tubeInPercentage > 0.0) { processDistortion(block); }
-        if(tremOnOff) { tremoloProcessing(buffer); }
+        if(tremOnOff) { if(tubeInPercentage > 0.0) { processDistortion(block); } tremoloProcessing(buffer); }
     }
     else
     {
-        if(tubeInPercentage > 0.0) { processDistortion(block); }
-        if(tremOnOff) { tremoloProcessing(buffer); }
+        if(tremOnOff) { if(tubeInPercentage > 0.0) { processDistortion(block); } tremoloProcessing(buffer); }
         preDelayProcesing(block);
         earlyReflectionsProcessing(buffer);
         reverbModule.process(context);

@@ -49,7 +49,7 @@ private:
     bbg_gui::bbg_Dial release { "", 1.0, 3000.0, 0.01, 0.0, 0.0 };
     bbg_gui::bbg_Menu waveMenu;
     bbg_gui::bbg_PushButton tremOnOffButton { "On" };
-    bbg_gui::bbg_PushButton tremPrePostButton { "Pre" };
+    bbg_gui::bbg_PushButton tremPrePostButton { "Post" };
     bbg_gui::bbg_Dial tremoDistortion { "", 0.0, 100.0, 0.1, 0.0, 0.0 };
     bbg_gui::bbg_Dial tremoRate { "", 0.0, 100.0, 0.01, 0.0, 0.0 };
     bbg_gui::bbg_Dial tremoDepth { "", 0.0, 100.0, 0.1, 0.0, 0.0 };
