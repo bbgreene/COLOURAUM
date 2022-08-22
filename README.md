@@ -1,9 +1,9 @@
-# B O U Y
+# C O L O U R A U M
 
 An audio tremolo vst plugin made with JUCE.
 
-![MyTremolo](https://github.com/bbgreene/BOUY/blob/master/Screenshots/MyTremolo%20-%20gui.png?raw=true
- "MyTremolo")
+![COLOURAUM](https://github.com/bbgreene/COLOURAUM/blob/master/Screenshots/COLOURAUM%20-%20gui.png?raw=true
+ "COLOURAUM")
  
  
  
