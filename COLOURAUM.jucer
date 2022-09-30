@@ -2,7 +2,7 @@
 
 <JUCERPROJECT id="QGc5FX" name="COLOURAUM" projectType="audioplug" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1" pluginManufacturer="Olumay dsp"
-              cppLanguageStandard="17">
+              cppLanguageStandard="17" companyName="Olumay dsp" companyWebsite="https://bbgreene.github.io/">
   <MAINGROUP id="kH8SW2" name="COLOURAUM">
     <GROUP id="{F150B744-FFC4-867D-1793-EEFFE63C5B0A}" name="Source">
       <GROUP id="{F3840EF4-6661-4D63-6206-F9098FE9BAEB}" name="bbg_gui">
